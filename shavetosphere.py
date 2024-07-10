@@ -1,5 +1,5 @@
 from ovito.io import import_file, export_file
-from ovito.modifiers import ReplicateModifier, DeleteSelectedModifier, ExpressionSelectionModifier
+from ovito.modifiers import ReplicateModifier, DeleteSelectedModifier, ExpressionSelectionModifier, AffineTransformationModifier
 import numpy as np
 
 def unit_cell_to_sphere(path, radius):
@@ -32,6 +32,14 @@ def unit_cell_to_sphere(path, radius):
     # select all particles whose 'DistanceCenter' property is greater than the variable 'radius'
     data.apply(ExpressionSelectionModifier(expression= f"DistanceCenter > {radius}"))
     data.apply(DeleteSelectedModifier())
+    
+    data.apply(AffineTransformationModifier(
+        operate_on = {'cell'}, # Transform box but not the particles or other elements.
+        relative_mode = False,
+        target_cell=[[radius*2, 0, 0, radius*-1],
+                     [0, radius*2, 0, radius*-1],
+                     [0, 0, radius*2, radius*-1]]
+    ))
 
     export_file(data, file="sphere.lmp", format="lammps/data")
 
