@@ -27,5 +27,3 @@ def calculate_net_charge(path):
     print(f"Number of Fe3+ atoms: {num_ferric_iron}")
     print(f"Number of O2- atoms: {num_oxide}")
     print(f"Net Charge: {net_charge}")
-
-calculate_net_charge("/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/sphere.lmp")
