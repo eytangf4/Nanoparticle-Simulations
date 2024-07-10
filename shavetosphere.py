@@ -4,7 +4,7 @@ import numpy as np
 
 def unit_cell_to_sphere(path, radius):
     pipeline = import_file(path)
-    pipeline.modifiers.append(ReplicateModifier(num_x=20, num_y=20, num_z=10))
+    pipeline.modifiers.append(ReplicateModifier(num_x=radius, num_y=radius, num_z=radius))
 
     data = pipeline.compute()
 
