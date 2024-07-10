@@ -36,3 +36,5 @@ data.apply(ExpressionSelectionModifier(expression= f"DistanceCenter > {radius}")
 data.apply(DeleteSelectedModifier())
 
 export_file(data, file="sphere.lmp", format="lammps/data")
+
+print(list(data.particles.keys()))
