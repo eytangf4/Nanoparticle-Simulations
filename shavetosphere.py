@@ -4,7 +4,7 @@ import numpy as np
 
 def unit_cell_to_sphere(path, radius):
     pipeline = import_file(path)
-    pipeline.modifiers.append(ReplicateModifier(num_x=radius, num_y=radius, num_z=radius))
+    pipeline.modifiers.append(ReplicateModifier(num_x=radius//2, num_y=radius//2, num_z=radius//4))
 
     data = pipeline.compute()
 
@@ -35,4 +35,4 @@ def unit_cell_to_sphere(path, radius):
 
     export_file(data, file="sphere.lmp", format="lammps/data")
 
-unit_cell_to_sphere("/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/Fe2O3.cif", 30)
+unit_cell_to_sphere("/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/Fe2O3.cif", 50)
