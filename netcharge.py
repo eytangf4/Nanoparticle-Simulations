@@ -23,6 +23,8 @@ def calculate_net_charge(path):
     oxide_charge = num_oxide * 2
 
     net_charge = ferric_iron_charge - oxide_charge
+    if net_charge > 0:
+        net_charge = f"+{net_charge}"
 
     print(f"Number of Fe3+ atoms: {num_ferric_iron}")
     print(f"Number of O2- atoms: {num_oxide}")

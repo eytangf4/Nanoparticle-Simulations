@@ -73,7 +73,7 @@ def set_up_nanoparticles(path, radius, distance):
    apart_spheres = rotate_and_adjust_distance_between_spheres(duplicated_sphere, radius, distance)
    return apart_spheres
 
-nanoparticles = set_up_nanoparticles("/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/Fe2O3.cif", radius=50, distance=50)
+nanoparticles = set_up_nanoparticles("/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/Fe2O3.cif", radius=30, distance=50)
 
 file_path = "nanoparticles.lmp"
 export_file(nanoparticles, file=file_path, format="lammps/data")
