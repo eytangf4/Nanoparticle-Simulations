@@ -1,10 +1,4 @@
-from ovito.io import import_file
-import numpy as np
-
-def calculate_net_charge(path):
-    pipeline = import_file(path)
-
-    data = pipeline.compute()
+def calculate_net_charge(data):
 
     particle_types = data.particles.particle_types[...]
 
@@ -28,9 +22,7 @@ def calculate_net_charge(path):
     print(f"Number of O2- atoms: {num_oxide}")
     if net_charge > 0:
         print(f"Net Charge: +{net_charge}")
-        num_oxide_for_neutral_charge = net_charge/2
-        print(f"{num_oxide_for_neutral_charge} oxide ions needed to create neutrally-charged nanoparticle")
-    else:
+    if net_charge <= 0:
         print(f"Net Charge: {net_charge}")
-        num_ferric_iron_for_neutral_charge = (net_charge/3) * -1
-        print(f"{num_ferric_iron_for_neutral_charge} ferric iron ions needed to create neutrally-charged nanoparticle")
+
+    return net_charge
