@@ -47,6 +47,7 @@ def unit_cell_to_sphere(path, radius):
 
 def rotate_sphere(data, azimuth, elevation):
    data.apply(AffineTransformationModifier(
+      operate_on={'particles'},
       transformation=[[math.cos(elevation), 0, math.sin(elevation), 0],
                       [math.sin(azimuth)*math.sin(elevation), math.cos(azimuth), -1*math.sin(azimuth)*math.cos(elevation), 0],
                       [-1*math.cos(azimuth)*math.sin(elevation), math.sin(azimuth), math.cos(azimuth)*math.cos(elevation), 0]]
@@ -79,8 +80,8 @@ def adjust_distance_between_spheres(data, radius, distance):
 def set_up_nanoparticles(path, radius, distance, azimuth, elevation):
    sphere = unit_cell_to_sphere(path,radius)
    rotated_sphere = rotate_sphere(sphere, azimuth=azimuth, elevation=elevation)
-   duplicated_sphere = duplicate_sphere(rotated_sphere)
-   apart_spheres = adjust_distance_between_spheres(duplicated_sphere, radius, distance)
+   duplicated_spheres = duplicate_sphere(rotated_sphere)
+   apart_spheres = adjust_distance_between_spheres(duplicated_spheres, radius, distance)
    return apart_spheres
 
 nanoparticles = set_up_nanoparticles("/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/Fe2O3.cif", radius=30, distance=50, azimuth = math.pi/6, elevation=math.pi/3)
