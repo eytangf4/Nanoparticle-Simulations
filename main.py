@@ -59,8 +59,6 @@ def neutralize_charge(data, radius):
 
       # /3 because the charge of ferric iron ions are 3+
       num_particles_to_delete = original_net_charge / 3
-      print("\n")
-      print(f"Number of Fe3+ ions randomly removed from the surface of the sphere: {num_particles_to_delete}")
 
       # calculate the number of selected particles
       num_selected_particles = 0
@@ -82,6 +80,8 @@ def neutralize_charge(data, radius):
             data.particles.selection_[random_index] = 0
             num_particles_to_deselect -= 1
       data.apply(DeleteSelectedModifier())
+      print("\n")
+      print(f"Number of Fe3+ ions randomly removed from the surface of the sphere: {num_particles_to_delete}")
    
    # if the net charge is negative, aka negative ions (ferric iron) need to be removed
    if original_net_charge < 0:
@@ -89,8 +89,6 @@ def neutralize_charge(data, radius):
 
       # /-2 because the charge of oxide ions are 2-
       num_particles_to_delete = original_net_charge / -2
-      print("\n")
-      print(f"Number of O2- ions randomly removed from the surface of the sphere: {num_particles_to_delete}")
 
       # calculate the number of selected particles
       num_selected_particles = 0
@@ -111,6 +109,8 @@ def neutralize_charge(data, radius):
             data.particles.selection_[random_index] = 0
             num_particles_to_deselect -= 1
       data.apply(DeleteSelectedModifier())
+      print("\n")
+      print(f"Number of O2- ions randomly removed from the surface of the sphere: {num_particles_to_delete}")
 
    print("\n")
    print("Neutralized Net Charge")
@@ -159,7 +159,7 @@ def set_up_nanoparticles(path, radius, distance, azimuth, elevation):
    apart_spheres = adjust_distance_between_spheres(duplicated_spheres, radius, distance)
    return apart_spheres
 
-nanoparticles = set_up_nanoparticles("/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/Fe2O3.cif", radius=20, distance=50, azimuth = math.pi/6, elevation=math.pi/3)
+nanoparticles = set_up_nanoparticles("/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/Fe2O3.cif", radius=30, distance=50, azimuth = math.pi/6, elevation=math.pi/3)
 
 file_path = "nanoparticles.lmp"
 export_file(nanoparticles, file=file_path, format="lammps/data")
