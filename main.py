@@ -2,6 +2,7 @@ from ovito.io import import_file, export_file
 from ovito.modifiers import ReplicateModifier, DeleteSelectedModifier, ExpressionSelectionModifier, AffineTransformationModifier
 import numpy as np
 from netcharge import *
+import math
 
 def unit_cell_to_sphere(path, radius):
     pipeline = import_file(path)
@@ -44,11 +45,19 @@ def unit_cell_to_sphere(path, radius):
 
     return data
 
+def rotate_sphere(data, azimuth, elevation):
+   data.apply(AffineTransformationModifier(
+      transformation=[[math.cos(elevation), 0, math.sin(elevation), 0],
+                      [math.sin(azimuth)*math.sin(elevation), math.cos(azimuth), -1*math.sin(azimuth)*math.cos(elevation), 0],
+                      [-1*math.cos(azimuth)*math.sin(elevation), math.sin(azimuth), math.cos(azimuth)*math.cos(elevation), 0]]
+   ))
+   return data
+
 def duplicate_sphere(data):
   data.apply(ReplicateModifier(num_x=2))
   return data
 
-def rotate_and_adjust_distance_between_spheres(data, radius, distance):
+def adjust_distance_between_spheres(data, radius, distance):
   data.apply(ExpressionSelectionModifier(expression=f"Position.X > {radius}"))
   data.apply(AffineTransformationModifier(
      operate_on={'particles'},
@@ -67,13 +76,14 @@ def rotate_and_adjust_distance_between_spheres(data, radius, distance):
   ))
   return data
 
-def set_up_nanoparticles(path, radius, distance):
+def set_up_nanoparticles(path, radius, distance, azimuth, elevation):
    sphere = unit_cell_to_sphere(path,radius)
-   duplicated_sphere = duplicate_sphere(sphere)
-   apart_spheres = rotate_and_adjust_distance_between_spheres(duplicated_sphere, radius, distance)
+   rotated_sphere = rotate_sphere(sphere, azimuth=azimuth, elevation=elevation)
+   duplicated_sphere = duplicate_sphere(rotated_sphere)
+   apart_spheres = adjust_distance_between_spheres(duplicated_sphere, radius, distance)
    return apart_spheres
 
-nanoparticles = set_up_nanoparticles("/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/Fe2O3.cif", radius=30, distance=50)
+nanoparticles = set_up_nanoparticles("/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/Fe2O3.cif", radius=30, distance=50, azimuth = math.pi/6, elevation=math.pi/3)
 
 file_path = "nanoparticles.lmp"
 export_file(nanoparticles, file=file_path, format="lammps/data")
