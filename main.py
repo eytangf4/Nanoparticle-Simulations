@@ -155,8 +155,6 @@ def create_arr_of_indeces_to_particles_of_right_type_and_furthest_away(data, to_
 
    return current_max_distance_of_particle_of_right_type_idx_arr
 
-
-
 def rotate_sphere(data, azimuth, elevation):
    data.apply(AffineTransformationModifier(
       operate_on={'particles'},
