@@ -96,7 +96,7 @@ def neutralize_charge(data, original_net_charge):
    
    # if we can't neutralize the charge without using fractions of particles (which we don't want to do), throw an error
    if ((num_particles_to_remove.is_integer()) == False):
-      raise Exception("Charge cannot be neutralized without using a fraction of a particle")
+      raise Exception("Charge cannot be neutralized without using a fraction of a particle. Try a different radius size.")
    
    current_num_particles_to_remove = num_particles_to_remove
 
@@ -234,10 +234,10 @@ def set_up_nanoparticles(path, radius, distance, azimuth, elevation):
    print("----------------------")
    neutralized_net_charge = calculate_net_charge(sphere)
 
-   # rotated_sphere = rotate_sphere(sphere, azimuth=azimuth, elevation=elevation)
-   # duplicated_spheres = duplicate_sphere(rotated_sphere)
-   # apart_spheres = adjust_distance_between_spheres(duplicated_spheres, radius, distance)
-   return sphere
+   rotated_sphere = rotate_sphere(sphere, azimuth=azimuth, elevation=elevation)
+   duplicated_spheres = duplicate_sphere(rotated_sphere)
+   apart_spheres = adjust_distance_between_spheres(duplicated_spheres, radius, distance)
+   return apart_spheres
 
 def save_lmp(data):
    file_path = "nanoparticles.lmp"
