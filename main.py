@@ -10,7 +10,6 @@ def unit_cell_to_sphere(path, radius):
     pipeline.modifiers.append(ReplicateModifier(num_x=radius//2, num_y=radius//2, num_z=radius//4))
 
     data = pipeline.compute()
-   #  data.particles.selec
 
     # data.particles (the 'Particles' container) object mimics the programming interface of a Python dictionary
 
@@ -47,77 +46,116 @@ def unit_cell_to_sphere(path, radius):
 
     return data
 
-def neutralize_charge(data, radius):
-   print("Original Net Charge")
-   print("-------------------")
-   original_net_charge = calculate_net_charge(data)
-   edge_threshold = 0.13
+# this code will only run if the net charge is not 0
+def neutralize_charge(data, original_net_charge):
 
-   # if the net charge is positive, aka positive ions (ferric iron) need to be removed
-   if original_net_charge > 0:
-      data.apply(ExpressionSelectionModifier(expression=f"ParticleType == 1 && DistanceCenter > {radius-edge_threshold}"))
+   # initialize needed variables
+   original_number_of_particles = data.particles.count
 
-      # /3 because the charge of ferric iron ions are 3+
-      num_particles_to_delete = original_net_charge / 3
-
-      # calculate the number of selected particles
-      num_selected_particles = 0
-      for particle in data.particles.selection[...]:
-         # if the particle is selected
-         if particle != 0:
-            num_selected_particles += 1
-
-      # check that enough particles are selected by the edge_threshold
-      if num_selected_particles < num_particles_to_delete:
-         print("Not enough particles selected to neutralize the charge, increase the 'edge_threshold' variable and try again.")
-
-
-      num_particles_to_deselect = num_selected_particles - num_particles_to_delete
-      while num_particles_to_deselect > 0:
-         random_index = random.randint(0, len(data.particles.selection)-1)
-         # if the particle at the random index is selected
-         if data.particles.selection[random_index] != 0:
-            data.particles.selection_[random_index] = 0
-            num_particles_to_deselect -= 1
-      data.apply(DeleteSelectedModifier())
-      print("\n")
-      print(f"Number of Fe3+ ions randomly removed from the surface of the sphere: {num_particles_to_delete}")
+   # if the net charge is positive
+   if (original_net_charge > 0):
+      # we need to remove Fe3+ ions because they have a positive charge (so removing them will lower the charge)
+      to_remove_particle_type = 1
+      num_particles_to_remove = original_net_charge / 3
+   # if the net charge is negative
+   elif (original_net_charge < 0):
+      # we need to remove O2- ions because they have a negative charge (so removing them will increase the charge)
+      to_remove_particle_type = 2
+      num_particles_to_remove = original_net_charge / -2
+   else:
+      raise Exception("Original net charge is 0 but the neutralize function somehow ran anyway")
    
-   # if the net charge is negative, aka negative ions (ferric iron) need to be removed
-   if original_net_charge < 0:
-      data.apply(ExpressionSelectionModifier(expression=f"ParticleType == 2 && DistanceCenter > {radius-edge_threshold}"))
+   # if we can't neutralize the charge without using fractions of particles (which we don't want to do), throw an error
+   if ((num_particles_to_remove.is_integer()) == False):
+      raise Exception("Charge cannot be neutralized without using a fraction of a particle")
+   
+   current_num_particles_to_remove = num_particles_to_remove
 
-      # /-2 because the charge of oxide ions are 2-
-      num_particles_to_delete = original_net_charge / -2
+   while (current_num_particles_to_remove > 0):
+      data.particles_.create_property('Selection')
+      particles_to_remove_idx_arr = create_arr_of_indeces_to_particles_of_right_type_and_furthest_away(data, to_remove_particle_type)
 
-      # calculate the number of selected particles
-      num_selected_particles = 0
-      for particle in data.particles.selection[...]:
-         # if the particle is selected (selected particles have a nonzero value, format of ovito selection modifier)
-         if particle != 0:
-            num_selected_particles += 1
+      # if the number of particles in the farthest 'shell' of particles to remove (farthest from the center)
+      # is less than or equal to the number
+      # of particles which need to be removed, remove all of the particles in the array
+      if (len(particles_to_remove_idx_arr) <= current_num_particles_to_remove):
+         for idx in particles_to_remove_idx_arr:
+            # select the particle
+            data.particles.selection_[idx] = 1
+         # remove all selected particles
+         # removing them by 'shell' so that the next iteration of the while loop
+         # calculates the next farthest particles to remove correctly
+         data.apply(DeleteSelectedModifier())
+         current_num_particles_to_remove -= len(particles_to_remove_idx_arr)
 
-      # check that enough particles are selected by the edge_threshold
-      if num_selected_particles < num_particles_to_delete:
-         print("Not enough particles selected to neutralize the charge, increase the 'edge_threshold' variable and try again.")
-      
-      num_particles_to_deselect = num_selected_particles - num_particles_to_delete
-      while num_particles_to_deselect > 0:
-         random_index = random.randint(0, len(data.particles.selection)-1)
-         # if the particle at the random index is selected
-         if data.particles.selection[random_index] != 0:
-            data.particles.selection_[random_index] = 0
-            num_particles_to_deselect -= 1
-      data.apply(DeleteSelectedModifier())
+      # if the current 'shell' of particles to remove has a greater number of particles in it
+      # than actually need to be removed to neutralize the charge of the nanoparticle
+      elif (len(particles_to_remove_idx_arr) > current_num_particles_to_remove):
+         randomly_chosen_indeces_arr = random.sample(particles_to_remove_idx_arr, int(current_num_particles_to_remove))
+         for idx in randomly_chosen_indeces_arr:
+            data.particles.selection_[idx] = 1
+         data.apply(DeleteSelectedModifier())
+         current_num_particles_to_remove -= current_num_particles_to_remove
+
+   new_number_of_particles = data.particles.count
+
+   # verify that the number of particles we were trying to remove were actually removed
+   if (new_number_of_particles != (original_number_of_particles-num_particles_to_remove)):
+      raise Exception("The number of particles that were actually removed did not "
+                      "match the number of particles that should have been removed")
+
+   # if we are removing Fe3+ ions
+   if to_remove_particle_type == 1:
       print("\n")
-      print(f"Number of O2- ions randomly removed from the surface of the sphere: {num_particles_to_delete}")
+      print("Neutralization")
+      print("--------------")
+      print(f"Number of Fe3+ ions removed: {num_particles_to_remove}")
 
-   print("\n")
-   print("Neutralized Net Charge")
-   print("-------------------")
-   net_charge = calculate_net_charge(data)
+   # if we are removing O2- ions
+   if to_remove_particle_type == 2:
+      print("\n")
+      print("Neutralization")
+      print("--------------")
+      print(f"Number of O2- ions removed: {num_particles_to_remove}")
    
    return data
+
+# in: the nanoparticle data of the not yet neutralized sphere, the type of particle that we are looking to remove
+# out: an array of indeces
+# effect: produces an array that contains the indices of the particles of the right type
+#         who are furthest away from the center of the sphere
+def create_arr_of_indeces_to_particles_of_right_type_and_furthest_away(data, to_remove_particle_type):
+   # initialize variables
+   distances_arr = data.particles['DistanceCenter']
+   particle_types_arr = data.particles.particle_type
+   current_max_distance_of_particle_of_right_type = 0
+   current_max_distance_of_particle_of_right_type_idx_arr = []
+
+
+   for idx in range(data.particles.count):
+      # if the particle is of the type we are looking to remove from the surface of the sphere
+      if (particle_types_arr[idx] == to_remove_particle_type):
+         # if the current particle has a greater distance from the center of the sphere than the previous selection
+         if (distances_arr[idx] > current_max_distance_of_particle_of_right_type):
+            current_max_distance_of_particle_of_right_type = distances_arr[idx]
+            current_max_distance_of_particle_of_right_type_idx_arr = [idx]
+         
+         # if the current particle has the same distance from the center of the sphere as the current max distance
+         elif (distances_arr[idx] == current_max_distance_of_particle_of_right_type):
+            current_max_distance_of_particle_of_right_type_idx_arr.append(idx)
+         
+         elif (distances_arr[idx] < current_max_distance_of_particle_of_right_type):
+            continue
+      else:
+         continue
+
+   # if the current max was not changed from it's initialization (eg. if every distance was somehow negative)
+   if current_max_distance_of_particle_of_right_type == 0:
+      raise Exception("The nanoparticle was not neutralized by the neutralization code")
+
+   return current_max_distance_of_particle_of_right_type_idx_arr
+
+
 
 def rotate_sphere(data, azimuth, elevation):
    data.apply(AffineTransformationModifier(
@@ -153,13 +191,28 @@ def adjust_distance_between_spheres(data, radius, distance):
 
 def set_up_nanoparticles(path, radius, distance, azimuth, elevation):
    sphere = unit_cell_to_sphere(path,radius)
-   neutralized_charge = neutralize_charge(sphere, radius)
-   rotated_sphere = rotate_sphere(sphere, azimuth=azimuth, elevation=elevation)
-   duplicated_spheres = duplicate_sphere(rotated_sphere)
-   apart_spheres = adjust_distance_between_spheres(duplicated_spheres, radius, distance)
-   return apart_spheres
 
-nanoparticles = set_up_nanoparticles("/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/Fe2O3.cif", radius=30, distance=50, azimuth = math.pi/6, elevation=math.pi/3)
+   # calculate the net charge of the sphere
+   print("Original Net Charge")
+   print("-------------------")
+   original_net_charge = calculate_net_charge(sphere)
+
+   # if the net charge of the spherical nanoparticle is not already neutralized
+   if (original_net_charge != 0):
+      sphere = neutralize_charge(sphere, original_net_charge)
+
+   # calculate the net charge of the sphere again
+   print("\n")
+   print("Neutralized Net Charge")
+   print("----------------------")
+   neutralized_net_charge = calculate_net_charge(sphere)
+
+   # rotated_sphere = rotate_sphere(sphere, azimuth=azimuth, elevation=elevation)
+   # duplicated_spheres = duplicate_sphere(rotated_sphere)
+   # apart_spheres = adjust_distance_between_spheres(duplicated_spheres, radius, distance)
+   return sphere
+
+nanoparticles = set_up_nanoparticles("/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/Fe2O3.cif", radius=22, distance=50, azimuth = math.pi/6, elevation=math.pi/3)
 
 file_path = "nanoparticles.lmp"
 export_file(nanoparticles, file=file_path, format="lammps/data")
