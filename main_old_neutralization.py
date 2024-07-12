@@ -1,7 +1,7 @@
 from ovito.io import import_file, export_file
 from ovito.modifiers import ReplicateModifier, DeleteSelectedModifier, ExpressionSelectionModifier, AffineTransformationModifier
 import numpy as np
-from netcharge import *
+from functions import *
 import math
 import random
 
