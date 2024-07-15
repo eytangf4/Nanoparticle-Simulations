@@ -239,6 +239,5 @@ def set_up_nanoparticles(path, radius, distance, azimuth, elevation):
    apart_spheres = adjust_distance_between_spheres(duplicated_spheres, radius, distance)
    return apart_spheres
 
-def save_lmp(data):
-   file_path = "nanoparticles.lmp"
+def save_lmp(data, file_path):
    export_file(data, file=file_path, format="lammps/data")
