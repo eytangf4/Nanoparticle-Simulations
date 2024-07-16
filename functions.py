@@ -1,6 +1,6 @@
 from ovito.io import import_file, export_file
 from ovito.modifiers import ReplicateModifier, DeleteSelectedModifier, ExpressionSelectionModifier, AffineTransformationModifier
-from ovito.data import CutoffNeighborFinder
+from ovito.data import NearestNeighborFinder
 import numpy as np
 from functions import *
 import math
@@ -37,7 +37,7 @@ def calculate_net_charge(data):
 
 def unit_cell_to_sphere(path, radius):
     pipeline = import_file(path)
-    pipeline.modifiers.append(ReplicateModifier(num_x=radius//2, num_y=radius//2, num_z=radius//4))
+    pipeline.modifiers.append(ReplicateModifier(num_x=radius//2, num_y=radius//2, num_z=radius//2))
 
     data = pipeline.compute()
 
@@ -246,13 +246,13 @@ def save_lmp_data(data, file_path):
 def save_lmp_dump(data, file_path):
    export_file(data, file=file_path, format="lammps/dump", columns = ["Particle Type", "Position.X", "Position.Y", "Position.Z", "ChargeDensity"])
 
-def check_charge_density(data, cutoff):
-   if ((cutoff % 5) != 0):
+def check_charge_density(data, num_particles):
+   if ((num_particles % 5) != 0):
       raise Exception("Your cutoff is not a multiple of 5. Please change it to a multiple of 5 since Fe2O3 has 5 particles in it.")
    
    charge_density_arr = np.zeros(data.particles.count)
 
-   neighbor_finder = CutoffNeighborFinder(cutoff=cutoff, data_collection=data)
+   neighbor_finder = NearestNeighborFinder(N=num_particles, data_collection=data)
    for idx in range(len(charge_density_arr)):
       # if the particle is Fe3+
       if data.particles.particle_types[idx] == 1:
@@ -267,6 +267,8 @@ def check_charge_density(data, cutoff):
       else:
          raise Exception("weird error, check code")
       
+      num_particles_check = 1
+      
       for neighbor in neighbor_finder.find(idx):
          # if the particle is Fe3+
          if data.particles.particle_types[neighbor.index] == 1:
@@ -280,9 +282,20 @@ def check_charge_density(data, cutoff):
          
          else:
             raise Exception("check code")
+         
+         num_particles_check += 1
+
+      # + 1 because we are including the center particle in addition to its n neighbors
+      if (num_particles_check != (num_particles+1)):
+         raise Exception("too few particles checked")
+      
+      particle_charge_density /= (num_particles+1)
       
       charge_density_arr[idx] = particle_charge_density
    
    data.particles_.create_property('ChargeDensity', data=charge_density_arr)
 
-   return data
+   charge_max = np.max(charge_density_arr)
+   charge_min = np.min(charge_density_arr)
+
+   return data, charge_max, charge_min
