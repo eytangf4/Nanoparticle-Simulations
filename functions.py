@@ -1,5 +1,6 @@
 from ovito.io import import_file, export_file
 from ovito.modifiers import ReplicateModifier, DeleteSelectedModifier, ExpressionSelectionModifier, AffineTransformationModifier
+from ovito.data import CutoffNeighborFinder
 import numpy as np
 from functions import *
 import math
@@ -239,5 +240,49 @@ def set_up_nanoparticles(path, radius, distance, azimuth, elevation):
    apart_spheres = adjust_distance_between_spheres(duplicated_spheres, radius, distance)
    return apart_spheres
 
-def save_lmp(data, file_path):
+def save_lmp_data(data, file_path):
    export_file(data, file=file_path, format="lammps/data")
+
+def save_lmp_dump(data, file_path):
+   export_file(data, file=file_path, format="lammps/dump", columns = ["Particle Type", "Position.X", "Position.Y", "Position.Z", "ChargeDensity"])
+
+def check_charge_density(data, cutoff):
+   if ((cutoff % 5) != 0):
+      raise Exception("Your cutoff is not a multiple of 5. Please change it to a multiple of 5 since Fe2O3 has 5 particles in it.")
+   
+   charge_density_arr = np.zeros(data.particles.count)
+
+   neighbor_finder = CutoffNeighborFinder(cutoff=cutoff, data_collection=data)
+   for idx in range(len(charge_density_arr)):
+      # if the particle is Fe3+
+      if data.particles.particle_types[idx] == 1:
+         # initialize the particle charge variable with the charge of the selected particle
+         particle_charge_density = 3
+      
+      # if the particle is O2-
+      elif data.particles.particle_types[idx] == 2:
+         # initialize the particle charge variable with the charge of the selected particle
+         particle_charge_density = -2
+      
+      else:
+         raise Exception("weird error, check code")
+      
+      for neighbor in neighbor_finder.find(idx):
+         # if the particle is Fe3+
+         if data.particles.particle_types[neighbor.index] == 1:
+            # add the charge of the Fe3+ neighbor to the particle charge
+            particle_charge_density += 3
+         
+         # if the particle is O2-
+         elif data.particles.particle_types[neighbor.index] == 2:
+            # add the charge of the O2- neighbor to the particle charge
+            particle_charge_density += -2
+         
+         else:
+            raise Exception("check code")
+      
+      charge_density_arr[idx] = particle_charge_density
+   
+   data.particles_.create_property('ChargeDensity', data=charge_density_arr)
+
+   return data
