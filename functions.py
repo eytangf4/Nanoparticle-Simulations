@@ -1,5 +1,5 @@
 from ovito.io import import_file, export_file
-from ovito.modifiers import ReplicateModifier, DeleteSelectedModifier, ExpressionSelectionModifier, AffineTransformationModifier
+from ovito.modifiers import ReplicateModifier, DeleteSelectedModifier, ExpressionSelectionModifier, AffineTransformationModifier, CombineDatasetsModifier
 from ovito.data import NearestNeighborFinder
 import numpy as np
 from functions import *
@@ -35,7 +35,7 @@ def calculate_net_charge(data):
 
     return net_charge
 
-def unit_cell_to_sphere(path, radius):
+def unit_cell_to_sphere(path, radius, distance):
     pipeline = import_file(path)
     pipeline.modifiers.append(ReplicateModifier(num_x=radius//2, num_y=radius//2, num_z=radius//2))
 
@@ -69,7 +69,7 @@ def unit_cell_to_sphere(path, radius):
     data.apply(AffineTransformationModifier(
         operate_on = {'cell'}, # Transform box but not the particles or other elements.
         relative_mode = False,
-        target_cell=[[radius*6, 0, 0, radius*-3],
+        target_cell=[[radius*8+distance, 0, 0, radius*-3],
                      [0, radius*6, 0, radius*-3],
                      [0, 0, radius*6, radius*-3]]
     ))
@@ -185,40 +185,40 @@ def create_arr_of_indeces_to_particles_of_right_type_and_furthest_away(data, to_
 
    return current_max_distance_of_particle_of_right_type_idx_arr
 
-def rotate_sphere(data, azimuth, elevation):
+def rotate_translate_sphere(data, azimuth, elevation, translation):
    data.apply(AffineTransformationModifier(
       operate_on={'particles'},
-      transformation=[[math.cos(elevation), 0, math.sin(elevation), 0],
+      transformation=[[math.cos(elevation), 0, math.sin(elevation), translation],
                       [math.sin(azimuth)*math.sin(elevation), math.cos(azimuth), -1*math.sin(azimuth)*math.cos(elevation), 0],
                       [-1*math.cos(azimuth)*math.sin(elevation), math.sin(azimuth), math.cos(azimuth)*math.cos(elevation), 0]]
    ))
    return data
 
-def duplicate_sphere(data):
-  data.apply(ReplicateModifier(num_x=2))
-  return data
+# def duplicate_sphere(data):
+#   data.apply(ReplicateModifier(num_x=2, operate_on={'particles'}, adjust_box=False))
+#   return data
 
-def adjust_distance_between_spheres(data, radius, distance):
-  data.apply(ExpressionSelectionModifier(expression=f"Position.X > {radius}"))
-  data.apply(AffineTransformationModifier(
-     operate_on={'particles'},
-     only_selected = True,
-     transformation=[[1, 0, 0, distance],
-                     [0, 1, 0, 0],
-                     [0, 0, 1, 0]]
-  ))
-  # adjust cell to include translated nanoparticle
-  data.apply(AffineTransformationModifier(
-     operate_on = {'cell'}, # Transform box but not the particles or other elements.
-     relative_mode=False,
-     target_cell=[[radius*4+distance, 0, 0, radius*-1],
-                  [0, radius*2, 0, radius*-1],
-                  [0, 0, radius*2, radius*-1]]
-  ))
-  return data
+# def adjust_distance_between_spheres(data, radius, distance):
+#   data.apply(ExpressionSelectionModifier(expression=f"Position.X > {radius}"))
+#   data.apply(AffineTransformationModifier(
+#      operate_on={'particles'},
+#      only_selected = True,
+#      transformation=[[1, 0, 0, distance],
+#                      [0, 1, 0, 0],
+#                      [0, 0, 1, 0]]
+#   ))
+#   # adjust cell to include translated nanoparticle
+#   data.apply(AffineTransformationModifier(
+#      operate_on = {'cell'}, # Transform box but not the particles or other elements.
+#      relative_mode=False,
+#      target_cell=[[radius*12+distance, 0, 0, radius*-3],
+#                   [0, radius*6, 0, radius*-3],
+#                   [0, 0, radius*6, radius*-3]]
+#   ))
+#   return data
 
-def set_up_nanoparticles(path, radius, distance, azimuth, elevation):
-   sphere = unit_cell_to_sphere(path,radius)
+def set_up_nanoparticle(path, radius, azimuth, elevation, translation, distance):
+   sphere = unit_cell_to_sphere(path,radius, distance=distance)
 
    # calculate the net charge of the sphere
    print("Original Net Charge")
@@ -235,10 +235,25 @@ def set_up_nanoparticles(path, radius, distance, azimuth, elevation):
    print("----------------------")
    neutralized_net_charge = calculate_net_charge(sphere)
 
-   rotated_sphere = rotate_sphere(sphere, azimuth=azimuth, elevation=elevation)
-   duplicated_spheres = duplicate_sphere(rotated_sphere)
-   apart_spheres = adjust_distance_between_spheres(duplicated_spheres, radius, distance)
-   return apart_spheres
+   rotated_translated_sphere = rotate_translate_sphere(sphere, azimuth=azimuth, elevation=elevation, translation=translation)
+   # duplicated_spheres = duplicate_sphere(rotated_sphere)
+   # apart_spheres = adjust_distance_between_spheres(duplicated_spheres, radius=radius, distance=distance)
+   return rotated_translated_sphere
+
+def set_up_two_nanoparticles(path, radius, azimuth1, elevation1, azimuth2, elevation2, distance, first_sphere_file_name, second_sphere_file_name):
+   first_sphere = set_up_nanoparticle(path, radius, azimuth1, elevation1, translation=0, distance=distance)
+   save_lmp_data(first_sphere, first_sphere_file_name)
+
+   second_sphere = set_up_nanoparticle(path, radius, azimuth2, elevation2, translation=((radius*2)+distance), distance=distance)
+   save_lmp_data(second_sphere, second_sphere_file_name)
+
+   combined_spheres_pipeline = import_file(first_sphere_file_name)
+   # Insert the particles from a second file into the dataset. 
+   modifier = CombineDatasetsModifier()
+   modifier.source.load(second_sphere_file_name)
+   combined_spheres_pipeline.modifiers.append(modifier)
+
+   save_lmp_data(combined_spheres_pipeline, file_path="combined_spheres.lmp")
 
 def save_lmp_data(data, file_path):
    export_file(data, file=file_path, format="lammps/data", atom_style="charge")

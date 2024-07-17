@@ -11,7 +11,7 @@ variable        maxeval_minimize equal 10000000000
 variable        temp equal 300
 variable        seed equal 123456
 
-read_data       neutralized_fe203_nanoparticle_radius_10.lmp
+read_data       combined_spheres.lmp
 
 # Buckingham parameters for Fe2O3 Potentials: 
 # (Liu et al., 2020) https://doi.org/10.1016/j.powtec.2020.03.043
@@ -46,7 +46,7 @@ log             log.md.npt
 compute         mdtemp all temp
 compute_modify  mdtemp dynamic/dof yes
 velocity        all create ${temp} ${seed} dist gaussian
-fix             mom all momentum 10000 linear 1 1 1 angular
+fix             mom all momentum 1 linear 1 1 1 angular
 fix             mynvt all nvt temp ${temp} ${temp} 1 # iso 0 0 10
 fix_modify      mynvt temp mdtemp
 
