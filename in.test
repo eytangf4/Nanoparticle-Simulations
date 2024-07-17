@@ -46,6 +46,7 @@ log             log.md.npt
 compute         mdtemp all temp
 compute_modify  mdtemp dynamic/dof yes
 velocity        all create ${temp} ${seed} dist gaussian
+fix             mom all momentum 10000 linear 1 1 1 angular
 fix             mynvt all nvt temp ${temp} ${temp} 1 # iso 0 0 10
 fix_modify      mynvt temp mdtemp
 
