@@ -1,0 +1,56 @@
+# Annealing of Fe2O3 nanoparticles
+
+log             log.test
+units           metal
+boundary        p p p
+atom_style      charge
+variable        etol_minimize equal 0.0
+variable        ftol_minimize equal 1e-11
+variable        maxiter_minimize equal 100000000
+variable        maxeval_minimize equal 10000000000
+variable        temp equal 300
+variable        seed equal 123456
+
+read_data       neutralized_fe203_nanoparticle_radius_10.lmp
+
+# Buckingham parameters for Fe2O3 Potentials: 
+# (Liu et al., 2020) https://doi.org/10.1016/j.powtec.2020.03.043
+pair_style      buck/coul/long/cs 12.0
+kspace_style    ewald   1.0e-6
+pair_coeff      1 2     62775.704   0.165   32.055      # Fe-O
+pair_coeff      2 2     3834.644    0.305   123.029     #  O-O
+pair_coeff      1 1     2500.943    0.029   6.383       # Fe-Fe
+mass            1       55.84500000                     # Fe
+mass            2       15.99900000                     # O
+
+set             type    1           charge  1.311
+set             type    2           charge -0.874
+
+thermo          1
+# thermo_style    custom step etotal epair evdwl ecoul elong ebond press
+thermo_style    custom step etotal temp press
+
+neigh_modify    every 1 delay 0 check yes
+# dump            minimization all custom 100 data/relax_disl.*.dump.gz id type x y z
+# dump_modify     minimization first no format float %23.17e
+
+minimize	    ${etol_minimize} ${ftol_minimize} ${maxiter_minimize} ${maxeval_minimize}
+
+reset_timestep  0
+write_dump      all atom dump/relaxed.dump.gz
+
+# read_dump       relaxed_disl.dump.gz 0 x y z box yes replace yes
+
+log             log.md.npt
+
+compute         mdtemp all temp
+compute_modify  mdtemp dynamic/dof yes
+velocity        all create ${temp} ${seed} dist gaussian
+fix             mynvt all nvt temp ${temp} ${temp} 1 # iso 0 0 10
+fix_modify      mynvt temp mdtemp
+
+dump            1 all custom 2000 dump/md.nvt.*.dump.gz id type x y z
+thermo          1
+
+run             10000
+

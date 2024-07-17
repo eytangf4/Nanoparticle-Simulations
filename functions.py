@@ -69,9 +69,9 @@ def unit_cell_to_sphere(path, radius):
     data.apply(AffineTransformationModifier(
         operate_on = {'cell'}, # Transform box but not the particles or other elements.
         relative_mode = False,
-        target_cell=[[radius*2, 0, 0, radius*-1],
-                     [0, radius*2, 0, radius*-1],
-                     [0, 0, radius*2, radius*-1]]
+        target_cell=[[radius*6, 0, 0, radius*-3],
+                     [0, radius*6, 0, radius*-3],
+                     [0, 0, radius*6, radius*-3]]
     ))
 
     return data
@@ -241,7 +241,7 @@ def set_up_nanoparticles(path, radius, distance, azimuth, elevation):
    return apart_spheres
 
 def save_lmp_data(data, file_path):
-   export_file(data, file=file_path, format="lammps/data")
+   export_file(data, file=file_path, format="lammps/data", atom_style="charge")
 
 def save_lmp_dump(data, file_path):
    export_file(data, file=file_path, format="lammps/dump", columns = ["Particle Type", "Position.X", "Position.Y", "Position.Z", "ChargeDensity"])
