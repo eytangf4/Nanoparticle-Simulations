@@ -14,17 +14,21 @@
 # You can request OVITO to create a GUI application object
 # by setting the environment variable OVITO_GUI_MODE=1 before importing the module.
 # Then OVITO and Matplotlib will share the same application object.
-
 import os
 os.environ['OVITO_GUI_MODE'] = '1'
 from functions import *
-import matplotlib.pyplot as plt
 
-set_up_two_nanoparticles(path="/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/standard cif files/Fe2O3.cif",
-                                         radius=10, distance=2, azimuth1 = math.pi/6, elevation1=math.pi/3, azimuth2=math.pi/3,
-                                         elevation2=math.pi/6, first_sphere_file_name="first_sphere.lmp",
-                                         second_sphere_file_name="second_sphere.lmp")
+# set_up_two_nanoparticles(path="/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/standard cif files/Fe2O3.cif",
+#                                          radius=10, distance=2, azimuth1 = math.pi/6, elevation1=math.pi/3, azimuth2=math.pi/3,
+#                                          elevation2=math.pi/6, first_sphere_file_name="first_sphere.lmp",
+#                                          second_sphere_file_name="second_sphere.lmp")
 
+simulation_directory_path = automate_simulation(path="/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/standard cif files/Fe2O3.cif",
+                            radius=15, distance=5, azimuth1 = 0, elevation1=0, azimuth2=0,
+                            elevation2=0, first_sphere_file_name="first_sphere.lmp",
+                            second_sphere_file_name="second_sphere.lmp", temperature=300, nstep=16000)
+
+# simulation_analysis(temperature=300)
 # sphere = unit_cell_to_sphere("/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/standard cif files/Fe2O3.cif", 10)
 # print("SPHERE")
 # sphere_net_charge = calculate_net_charge(sphere)

@@ -4,11 +4,11 @@ log             log.test
 units           metal
 boundary        p p p
 atom_style      charge
+include         in.parameters
 variable        etol_minimize equal 0.0
 variable        ftol_minimize equal 1e-11
 variable        maxiter_minimize equal 100000000
 variable        maxeval_minimize equal 10000000000
-variable        temp equal 300
 variable        seed equal 123456
 
 read_data       combined_spheres.lmp
@@ -53,5 +53,5 @@ fix_modify      mynvt temp mdtemp
 dump            1 all custom 2000 dump/md.nvt.*.dump.gz id type x y z
 thermo          1
 
-run             10000
+run             ${mdstep}
 

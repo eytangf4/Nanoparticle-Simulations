@@ -2,9 +2,13 @@ from ovito.io import import_file, export_file
 from ovito.modifiers import ReplicateModifier, DeleteSelectedModifier, ExpressionSelectionModifier, AffineTransformationModifier, CombineDatasetsModifier
 from ovito.data import NearestNeighborFinder
 import numpy as np
-from functions import *
 import math
 import random
+import os
+import shutil
+from fractions import Fraction
+from log import log as lammps_log
+import matplotlib.pyplot as plt
 
 def calculate_net_charge(data):
 
@@ -240,20 +244,20 @@ def set_up_nanoparticle(path, radius, azimuth, elevation, translation, distance)
    # apart_spheres = adjust_distance_between_spheres(duplicated_spheres, radius=radius, distance=distance)
    return rotated_translated_sphere
 
-def set_up_two_nanoparticles(path, radius, azimuth1, elevation1, azimuth2, elevation2, distance, first_sphere_file_name, second_sphere_file_name):
+def set_up_two_nanoparticles(path, radius, azimuth1, elevation1, azimuth2, elevation2, distance, first_sphere_file_name, second_sphere_file_name, specific_simulation_directory_path):
    first_sphere = set_up_nanoparticle(path, radius, azimuth1, elevation1, translation=0, distance=distance)
-   save_lmp_data(first_sphere, first_sphere_file_name)
+   save_lmp_data(first_sphere, f"{specific_simulation_directory_path}/{first_sphere_file_name}")
 
    second_sphere = set_up_nanoparticle(path, radius, azimuth2, elevation2, translation=((radius*2)+distance), distance=distance)
-   save_lmp_data(second_sphere, second_sphere_file_name)
+   save_lmp_data(second_sphere, f"{specific_simulation_directory_path}/{second_sphere_file_name}")
 
-   combined_spheres_pipeline = import_file(first_sphere_file_name)
+   combined_spheres_pipeline = import_file(f'{specific_simulation_directory_path}/{first_sphere_file_name}')
    # Insert the particles from a second file into the dataset. 
    modifier = CombineDatasetsModifier()
-   modifier.source.load(second_sphere_file_name)
+   modifier.source.load(f'{specific_simulation_directory_path}/{second_sphere_file_name}')
    combined_spheres_pipeline.modifiers.append(modifier)
 
-   save_lmp_data(combined_spheres_pipeline, file_path="combined_spheres.lmp")
+   save_lmp_data(combined_spheres_pipeline, file_path=f"{specific_simulation_directory_path}/combined_spheres.lmp")
 
 def save_lmp_data(data, file_path):
    export_file(data, file=file_path, format="lammps/data", atom_style="charge")
@@ -314,3 +318,54 @@ def check_charge_density(data, num_particles):
    charge_min = np.min(charge_density_arr)
 
    return data, charge_max, charge_min
+
+def automate_simulation(path, radius, azimuth1, elevation1, azimuth2, elevation2, distance, first_sphere_file_name, second_sphere_file_name, temperature, nstep):
+   # create a folder within the "simulations" folder to hold the contents of a specific simulation
+   simulation_directory = f"Temperature{temperature}_nstep{nstep}_d{distance}_r{radius}_azimuth1{to_fraction(azimuth1)}pi_elevation1{to_fraction(elevation1)}pi_azimuth2{to_fraction(azimuth2)}pi_elevation2{to_fraction(elevation2)}pi"
+   parent_directory = "/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/simulations"
+   simulation_directory_path = os.path.join(parent_directory, simulation_directory)
+   os.makedirs(simulation_directory_path, exist_ok=True)
+
+   # create a folder within that specific simulation folder named "dump" to add the .gz simulation files to
+   dump_directory = "dump"
+   dump_directory_path = os.path.join(simulation_directory_path, dump_directory)
+   os.makedirs(dump_directory_path, exist_ok=True)
+
+   # copy the in.test file into the specific simulation folder
+   shutil.copy(src="/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/in.test", dst=f"{simulation_directory_path}/in.test")
+
+   # create a file in the specific simulation folder called "in.parameters" that holds the inputted parameters for the simulation
+   parameters_file_name = "in.parameters"
+   parameters_file_path = os.path.join(simulation_directory_path, parameters_file_name)
+   # “w”: This string is used for writing on/over the file.
+   # If the file with the supplied name doesn’t exist, it creates one for you.
+   parameters_file = open(parameters_file_path, 'w')
+   parameters_file.write(f'variable        temp equal {temperature}\nvariable        mdstep equal {nstep}')
+   parameters_file.close()
+
+   set_up_two_nanoparticles(path=path, radius=radius, azimuth1=azimuth1, elevation1=elevation1, azimuth2=azimuth2,
+                            elevation2=elevation2, distance=distance, first_sphere_file_name=first_sphere_file_name,
+                            second_sphere_file_name=second_sphere_file_name,
+                            specific_simulation_directory_path=simulation_directory_path)
+   
+   return simulation_directory_path
+
+def to_fraction(radian_angle_multiple_of_pi):
+   decimal = radian_angle_multiple_of_pi/math.pi
+   fraction = Fraction(decimal).limit_denominator()
+   str_fraction = str(fraction)
+   without_slash = str_fraction.replace("/", "over")
+   return without_slash
+
+def simulation_analysis(temperature):
+   lg = lammps_log('log.md.npt')
+   step = lg.get('Step')
+   temp = lg.get('Temp')
+   pressure = lg.get('Press')
+   energy = lg.get('TotEng')
+
+   plt.plot(step, temp, label='Temperature (K)')
+   plt.plot(step, pressure, label='')
+   plt.axhline(temperature, color='k', linestyle='--')
+   plt.legend()
+   plt.show()
