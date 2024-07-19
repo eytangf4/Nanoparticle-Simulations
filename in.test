@@ -50,7 +50,7 @@ fix             mom all momentum 1 linear 1 1 1 angular
 fix             mynvt all nvt temp ${temp} ${temp} 1 # iso 0 0 10
 fix_modify      mynvt temp mdtemp
 
-dump            1 all custom 2000 dump/md.nvt.*.dump.gz id type x y z
+dump            1 all custom 100 dump/md.nvt.*.dump.gz id type x y z
 thermo          1
 
 run             ${mdstep}

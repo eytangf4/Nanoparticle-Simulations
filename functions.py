@@ -357,15 +357,18 @@ def to_fraction(radian_angle_multiple_of_pi):
    without_slash = str_fraction.replace("/", "over")
    return without_slash
 
-def simulation_analysis(temperature):
+def simulation_analysis(path, temperature):
+   simulation_plot_path = f"{path}/temp_pressure_plot.png"
    lg = lammps_log('log.md.npt')
    step = lg.get('Step')
    temp = lg.get('Temp')
    pressure = lg.get('Press')
    energy = lg.get('TotEng')
 
+   plt.title(simulation_plot_path, fontsize=10)
    plt.plot(step, temp, label='Temperature (K)')
-   plt.plot(step, pressure, label='')
+   plt.plot(step, pressure, label='Pressure (Bars)')
    plt.axhline(temperature, color='k', linestyle='--')
+   plt.savefig(simulation_plot_path, dpi=300)
    plt.legend()
    plt.show()

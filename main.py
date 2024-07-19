@@ -23,12 +23,24 @@ from functions import *
 #                                          elevation2=math.pi/6, first_sphere_file_name="first_sphere.lmp",
 #                                          second_sphere_file_name="second_sphere.lmp")
 
-simulation_directory_path = automate_simulation(path="/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/standard cif files/Fe2O3.cif",
-                            radius=15, distance=5, azimuth1 = 0, elevation1=0, azimuth2=0,
-                            elevation2=0, first_sphere_file_name="first_sphere.lmp",
-                            second_sphere_file_name="second_sphere.lmp", temperature=300, nstep=16000)
+# simulation_directory_path = automate_simulation(path="/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/standard cif files/Fe2O3.cif",
+#                             radius=25, distance=5, azimuth1 = 0, elevation1=0, azimuth2=0,
+#                             elevation2=0, first_sphere_file_name="first_sphere.lmp",
+#                             second_sphere_file_name="second_sphere.lmp", temperature=1300, nstep=200000)
 
-# simulation_analysis(temperature=300)
+# simulation_num = 0
+# for temp in range(300,1400,100):
+#     for d in range (1,11):
+#         simulation_num += 1
+#         print(f"simulation num: {simulation_num}")
+#         print(f"temp: {temp}")
+#         print(f"d: {d}")
+#         simulation_directory_path = automate_simulation(path="/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/standard cif files/Fe2O3.cif",
+#                                                         radius=25, distance=d, azimuth1 = 0, elevation1=0, azimuth2=0,
+#                                                         elevation2=0, first_sphere_file_name="first_sphere.lmp",
+#                                                         second_sphere_file_name="second_sphere.lmp", temperature=temp, nstep=200000)
+
+simulation_analysis("/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/simulations/Temperature1300_nstep16000_d5_r15_azimuth10pi_elevation10pi_azimuth20pi_elevation20pi", temperature=1300)
 # sphere = unit_cell_to_sphere("/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/standard cif files/Fe2O3.cif", 10)
 # print("SPHERE")
 # sphere_net_charge = calculate_net_charge(sphere)
