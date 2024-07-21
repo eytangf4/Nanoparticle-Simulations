@@ -17,6 +17,11 @@
 import os
 os.environ['OVITO_GUI_MODE'] = '1'
 from functions import *
+from simulation_analysis import *
+
+h, theta = necking_analysis(finished_simulation_path='/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/simulations/Temperature1300_nstep16000_d5_r15_azimuth10pi_elevation10pi_azimuth20pi_elevation20pi/dump/md.nvt.16000.dump.gz', radius=15, distance=5)
+print(f"h: {h}")
+print(f"theta: {theta}")
 
 # set_up_two_nanoparticles(path="/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/standard cif files/Fe2O3.cif",
 #                                          radius=10, distance=2, azimuth1 = math.pi/6, elevation1=math.pi/3, azimuth2=math.pi/3,
@@ -40,8 +45,8 @@ from functions import *
 #                                                         elevation2=0, first_sphere_file_name="first_sphere.lmp",
 #                                                         second_sphere_file_name="second_sphere.lmp", temperature=temp, nstep=200000)
 
-simulation_analysis("/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/simulations/Temperature1300_nstep16000_d5_r15_azimuth10pi_elevation10pi_azimuth20pi_elevation20pi", temperature=1300)
-# sphere = unit_cell_to_sphere("/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/standard cif files/Fe2O3.cif", 10)
+# simulation_analysis("/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/simulations/Temperature1300_nstep16000_d5_r15_azimuth10pi_elevation10pi_azimuth20pi_elevation20pi", temperature=1300)
+# sphere = unit_cell_to_sphere("/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/standard cif files/Fe2O3.cif", radius=25, distance=0)
 # print("SPHERE")
 # sphere_net_charge = calculate_net_charge(sphere)
 # save_lmp_data(sphere, "sphere.lmp")
