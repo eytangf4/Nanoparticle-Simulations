@@ -19,9 +19,28 @@ os.environ['OVITO_GUI_MODE'] = '1'
 from functions import *
 from simulation_analysis import *
 
-h, theta = necking_analysis(finished_simulation_path='/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/simulations/Temperature1300_nstep16000_d5_r15_azimuth10pi_elevation10pi_azimuth20pi_elevation20pi/dump/md.nvt.16000.dump.gz', radius=15, distance=5)
-print(f"h: {h}")
-print(f"theta: {theta}")
+# neck_area = necking_analysis(finished_simulation_path='sftp://eytangf@dtn.sherlock.stanford.edu/scratch/groups/leoradm/yfwang09/NP_sintering/Temperature400_nstep200000_d3_r25_azimuth10pi_elevation10pi_azimuth20pi_elevation20pi/dump/md.nvt.200000.dump.gz', radius=25, distance=3)
+# print(f"neck area: {neck_area}")
+
+neck_area_arr = []
+time_step_arr = []
+
+for i in range(0,210000, 10000):
+    neck_area = necking_analysis(finished_simulation_path=f'sftp://eytangf@dtn.sherlock.stanford.edu/scratch/groups/leoradm/yfwang09/NP_sintering/Temperature400_nstep200000_d3_r25_azimuth10pi_elevation10pi_azimuth20pi_elevation20pi/dump/md.nvt.{str(i)}.dump.gz', radius=25, distance=3)
+    neck_area_arr.append(neck_area)
+    time_step_arr.append(i)
+    print(f"neck area: {neck_area}")
+
+plt.plot(time_step_arr, neck_area_arr) 
+# Naming the x-axis, y-axis and the whole graph 
+plt.xlabel("Time Step") 
+plt.ylabel("Neck Area (Angstrom)") 
+plt.title("Neck Area v Time Step")
+plt.ylim(bottom=0)
+plt.xticks(np.arange(start=0,stop=220000,step=20000))
+
+plt.show()
+
 
 # set_up_two_nanoparticles(path="/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/standard cif files/Fe2O3.cif",
 #                                          radius=10, distance=2, azimuth1 = math.pi/6, elevation1=math.pi/3, azimuth2=math.pi/3,
