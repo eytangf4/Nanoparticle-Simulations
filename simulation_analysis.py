@@ -1,85 +1,144 @@
-from ovito.io import import_file, export_file
-from ovito.modifiers import ExpressionSelectionModifier
+from ovito.io import import_file
+from ovito.modifiers import ConstructSurfaceModifier, SliceModifier
 import matplotlib.pyplot as plt
 import math
 import numpy as np
+from log import log as lammps_log
+import os
 
-def necking_analysis(finished_simulation_path, radius, distance):
-    pipeline = import_file(finished_simulation_path)
-    init_distance_between_centers_of_nanoparticles = (radius*2)+distance
+def get_neck_area(simulation_path, nanoparticle_radius, distance):
+    
+    # initialize variables
+    init_distance_between_centers_of_nanoparticles = (nanoparticle_radius*2)+distance
     halfway_between_original_spheres = (init_distance_between_centers_of_nanoparticles/2)
-    pipeline.modifiers.append(ExpressionSelectionModifier(expression = f'(Position.X>{halfway_between_original_spheres-1}&&Position.X<{halfway_between_original_spheres+1})'))
 
+    # import the simulation data and apply modifiers
+    pipeline = import_file(simulation_path)
+    pipeline.modifiers.append(ConstructSurfaceModifier(radius = 2.5))
+    pipeline.modifiers.append(SliceModifier(distance=halfway_between_original_spheres, slab_width=2, select=True))
+    
     data = pipeline.compute()
-    if data.attributes['ExpressionSelection.count'] == 0:
-        raise Exception("No particles selected using given inputs")
+
+    surface_mesh = data.surfaces['surface']
+    # neck_surface_mesh = surface_mesh[surface_mesh.vertices['Selection'] == 0]
+
+    # get vertex coords, convert to numpy array with '[...]'
+    vertex_coords = surface_mesh.vertices['Position'][...]
+    # get vertex selections (selected using slice), convert to numpy array with '[...]'
+    vertex_selections = surface_mesh.vertices['Selection'][...]
+    # get all vertex coords whose vertices are not selected (aka are part of neck)
+    neck_vertex_coords = vertex_coords[vertex_selections == 0]
+
+    # if there is no surface in the area of the necking
+    if len(neck_vertex_coords) == 0:
+        # return 0 since the area of the neck is 0 when there is no neck
+        return 0
     
-    particle_positions = data.particles.positions[...]
-    particle_selection_property_arr = data.particles.selection[...]
-    num_selected = particle_selection_property_arr[particle_selection_property_arr > 0].sum()
-    # vars
-    summed_distances_from_neck_center = 0
+    # loop through all rows with ':'
+    # loop through the y column with '1'
+    # calculate average y value of neck vertices
+    avg_y = np.mean(neck_vertex_coords[:,1])
 
-    # initialize 1-d array with the same number of particles
-    particle_distances_from_center_of_neck = np.zeros(data.particles.count)
+    # loop through all rows with ':'
+    # loop through the z column with '2'
+    # calculate average z value of neck vertices
+    avg_z = np.mean(neck_vertex_coords[:,2])
 
-    for idx in range(len(particle_positions)):
-        # if the particle is selected (aka part of the neck disk)
-        if particle_selection_property_arr[idx] != 0:
-            # (1,3) numpy array, first value x, second y, third z
-            particle_position = particle_positions[idx]
-            # the center is the middle of the neck exactly aligning with the particle along the x-axis
-            center_of_neck = [particle_position[0], 0, 0]
+    # center coords are avg y and z since average of a coord in a circle is the middle aka center
+    center_coords = np.array([avg_y, avg_z])
 
-            # apply distance formula
-            # origin is at [init_distance_between_centers_of_nanoparticles/2,0,0]
-            squared_dist = np.sum((particle_position-center_of_neck)**2, axis=0)
-            dist = np.sqrt(squared_dist)
+    # calculate the squared distances along the x-axis (so only using y and z coords) of each vertex from the center of the neck
+    # axis 1 is adding down rows, axis 0 would be adding down columns
 
-            # save the particle's distance from the origin in the corresponding spot (aka index) in the 'particle_distances_from_center' array
-            particle_distances_from_center_of_neck[idx] = dist
-            summed_distances_from_neck_center += dist
-        # if the particle is not selected
-        else:
-            particle_distances_from_center_of_neck[idx] = 0
+    # eg.
+    # positions = np.array([[1, 1, 1],
+                    #       [2, 2, 2],
+                    #       [3, 3, 3]])
+    # center = np.array([1, 1])
+
+    # print(positions[:, 1:3]-center)
+    # yields
+    # [[0 0]
+    #  [1 1]
+    #  [2 2]]
+    # if np.sum with axis == 0 --> on first column 0 + 1 + 2 = 3, on second column 0 + 1 + 2 = 3, produces [3,3]
+    # if np.sum with axis == 1 --> on first row 0 + 0 = 0, on second row 1 + 1 = 2, on third row 2 + 2 = 4, produces [0,2,4]
+    squared_dist_from_center = np.sum((neck_vertex_coords[:, 1:3]-center_coords)**2, axis=1)
+
+    # take the sqrt of the squared distances 
+    dist_from_center = np.sqrt(squared_dist_from_center)
+
+    # calculate the average distance of the vertices from the center of the neck
+    # aka the approximate radius of the neck
+    avg_dist_from_center = np.mean(dist_from_center)
+
+    neck_area = math.pi * (avg_dist_from_center**2)
     
-    average_distance_from_neck_center = summed_distances_from_neck_center / num_selected
-
-    # times 1.5 because:
-    # To find the average distance from any point to the center, we integrate the distance 'r'
-    # over the entire disk and then divide by the total area of the disk.
-    # the area of the disk is pi R (radius of the disk)^2. plugging that into the integrals and simplifying
-    # yields the evntual result of average distance = (2 * R)/3
-    # so R = (3 * average distance) / 2 aka average distance * 1.5
-    neck_radius = average_distance_from_neck_center * 1.5
-
-    # pi * r^2
-    neck_area = math.pi * (neck_radius**2)
-    # inverse sin of neck radius over nanoparticle radius
-    # in radians
-    theta = math.asin(neck_radius/radius)
-
     return neck_area
 
+def get_distance_between_nanoparticle_ends(simulation_path):
 
-    # particle_selection_property_arr = data.particles.selection[...]
-    # current_max_z = 0
+    # import the simulation data
+    pipeline = import_file(simulation_path)
 
-    # for idx in range(len(particle_selection_property_arr)):
-    #     # if the particle is selected
-    #     if particle_selection_property_arr[idx] != 0:
-    #         # if the z value of the selected particle is greater than the current max z value
-    #         if data.particles.positions[idx][2] > current_max_z:
-    #             # set the current max z variable to the selected particle's z value
-    #             current_max_z = data.particles.positions[idx][2]
-
-    # if current_max_z == 0:
-    #     raise Exception('necking analysis code not identifying a max z value')
+    # compute the data
+    data = pipeline.compute()
     
-    # h = current_max_z * 2
-    # # in radians
-    # theta = math.asin(current_max_z/radius)
+    # get the particle positions, convert to numpy array using '[...]'
+    particle_positions = data.particles.positions[...]
 
-    # return h, theta
+    # get the distance between the two nanoparticle ends along the x-axis
+    dist_between_nanoparticle_ends = (np.max(particle_positions[:,0]) - np.min(particle_positions[:,0]))
 
+    return dist_between_nanoparticle_ends
 
+def get_temperature(path):
+   log_path = f'{path}/log.md.npt'
+   lg = lammps_log(log_path)
+   step_arr = lg.get('Step')
+   temp_arr = lg.get('Temp')
+   return step_arr, temp_arr
+
+#    plt.title(simulation_plot_path, fontsize=10)
+#    plt.plot(step, temp, label='Temperature (K)')
+#    plt.plot(step, pressure, label='Pressure (Bars)')
+#    plt.axhline(temperature, color='k', linestyle='--')
+#    plt.savefig(simulation_plot_path, dpi=300)
+#    plt.legend()
+#    plt.show()
+
+def save_data_to_file(temperature, d, analysis_type, arr_1, arr_2):
+    # create folder with simulation info (eg. temp )
+    simulation_folder = f"simulation_analysis/Temperature{temperature}_distance{d}_azimuth1_0pi_elevation1_0pi_azimuth2_0pi_elevation2_0pi"
+    if not os.path.exists(simulation_folder):
+        os.makedirs(simulation_folder)
+    np.savez(os.path.join(simulation_folder, analysis_type), arr_1 = arr_1, arr_2 = arr_2)
+
+# loop through all the dumps
+
+def save_analyses():
+    for temp in range (300,1400,100):
+        for d in range (9,11):
+            simulation_path_string = f'sftp://eytangf@dtn.sherlock.stanford.edu/scratch/groups/leoradm/yfwang09/NP_sintering/Temperature{temp}_nstep200000_d{d}_r25_azimuth10pi_elevation10pi_azimuth20pi_elevation20pi'
+
+            # initialize neck area and distance nanoparticle ends arrs 
+            neck_area_arr = []
+            dist_ends_arr = []
+            time_step_arr = np.arange(0,201000,1000)
+
+            for step in range (0, 201000, 1000):
+                print(f'temp: {temp} d: {d} step: {step}')
+                simulation_path_string_with_step = f'{simulation_path_string}/dump/md.nvt.{step}.dump.gz'
+
+                # calculate the neck area and dist between nanoparticle ends values for the simulation step
+                neck_area = get_neck_area(simulation_path=simulation_path_string_with_step, nanoparticle_radius=25, distance=d)
+                dist_ends = get_distance_between_nanoparticle_ends(simulation_path_string_with_step)
+
+                # append the values to the arrays
+                neck_area_arr.append(neck_area)
+                dist_ends_arr.append(dist_ends)
+            
+            # save the temperature, neck area, and dist ends arrays v time to individual files within the simulation folder
+            # in the 'simulation_analysis' parent folder
+            save_data_to_file(temperature=temp, d=d, analysis_type="neck_area_v_time", arr_1=time_step_arr, arr_2=neck_area_arr)
+            save_data_to_file(temperature=temp, d=d, analysis_type="dist_ends_v_time", arr_1=time_step_arr, arr_2=dist_ends_arr)

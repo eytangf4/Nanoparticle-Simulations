@@ -19,27 +19,44 @@ os.environ['OVITO_GUI_MODE'] = '1'
 from functions import *
 from simulation_analysis import *
 
-# neck_area = necking_analysis(finished_simulation_path='sftp://eytangf@dtn.sherlock.stanford.edu/scratch/groups/leoradm/yfwang09/NP_sintering/Temperature400_nstep200000_d3_r25_azimuth10pi_elevation10pi_azimuth20pi_elevation20pi/dump/md.nvt.200000.dump.gz', radius=25, distance=3)
-# print(f"neck area: {neck_area}")
+# dist_ends = get_distance_between_nanoparticle_ends(simulation_path='sftp://eytangf@dtn.sherlock.stanford.edu/scratch/groups/leoradm/yfwang09/NP_sintering/Temperature400_nstep200000_d3_r25_azimuth10pi_elevation10pi_azimuth20pi_elevation20pi/dump/md.nvt.200000.dump.gz')
+# print(f"neck area: {dist_ends}")
 
-neck_area_arr = []
-time_step_arr = []
+# neck_area_arr = []
+# time_step_arr = []
 
-for i in range(0,210000, 10000):
-    neck_area = necking_analysis(finished_simulation_path=f'sftp://eytangf@dtn.sherlock.stanford.edu/scratch/groups/leoradm/yfwang09/NP_sintering/Temperature400_nstep200000_d3_r25_azimuth10pi_elevation10pi_azimuth20pi_elevation20pi/dump/md.nvt.{str(i)}.dump.gz', radius=25, distance=3)
-    neck_area_arr.append(neck_area)
-    time_step_arr.append(i)
-    print(f"neck area: {neck_area}")
+# for i in range(0,210000, 10000):
+#     neck_area = get_neck_area(simulation_path=f'sftp://eytangf@dtn.sherlock.stanford.edu/scratch/groups/leoradm/yfwang09/NP_sintering/Temperature400_nstep200000_d3_r25_azimuth10pi_elevation10pi_azimuth20pi_elevation20pi/dump/md.nvt.{i}.dump.gz', nanoparticle_radius=25, distance=3)
+#     neck_area_arr.append(neck_area)
+#     time_step_arr.append(i)
+#     print(f"neck area: {neck_area}")
 
-plt.plot(time_step_arr, neck_area_arr) 
-# Naming the x-axis, y-axis and the whole graph 
-plt.xlabel("Time Step") 
-plt.ylabel("Neck Area (Angstrom)") 
-plt.title("Neck Area v Time Step")
-plt.ylim(bottom=0)
-plt.xticks(np.arange(start=0,stop=220000,step=20000))
+# plt.plot(time_step_arr, neck_area_arr) 
+# # Naming the x-axis, y-axis and the whole graph 
+# plt.xlabel("Time Step") 
+# plt.ylabel("Neck Area (Angstrom^2)") 
+# plt.title("Neck Area v Time Step")
+# plt.ylim(bottom=0)
+# plt.xticks(np.arange(start=0,stop=220000,step=20000))
 
-plt.show()
+# plt.show()
+
+# dist_ends_arr = []
+# time_step_arr = np.arange(0, 210000, 10000)
+
+# for i in range(0,210000, 10000):
+#     dist_ends = get_distance_between_nanoparticle_ends(simulation_path=f'sftp://eytangf@dtn.sherlock.stanford.edu/scratch/groups/leoradm/yfwang09/NP_sintering/Temperature400_nstep200000_d3_r25_azimuth10pi_elevation10pi_azimuth20pi_elevation20pi/dump/md.nvt.{i}.dump.gz')
+#     dist_ends_arr.append(dist_ends)
+#     print(f"neck area: {dist_ends}")
+
+# plt.plot(time_step_arr, dist_ends_arr) 
+# # Naming the x-axis, y-axis and the whole graph 
+# plt.xlabel("Time Step") 
+# plt.ylabel("Dist Ends (Angstrom)") 
+# plt.title("Dist Ends v Time Step")
+# plt.xticks(np.arange(start=0,stop=220000,step=20000))
+
+# plt.show()
 
 
 # set_up_two_nanoparticles(path="/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/standard cif files/Fe2O3.cif",
@@ -52,17 +69,18 @@ plt.show()
 #                             elevation2=0, first_sphere_file_name="first_sphere.lmp",
 #                             second_sphere_file_name="second_sphere.lmp", temperature=1300, nstep=200000)
 
-# simulation_num = 0
-# for temp in range(300,1400,100):
-#     for d in range (1,11):
-#         simulation_num += 1
-#         print(f"simulation num: {simulation_num}")
-#         print(f"temp: {temp}")
-#         print(f"d: {d}")
-#         simulation_directory_path = automate_simulation(path="/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/standard cif files/Fe2O3.cif",
-#                                                         radius=25, distance=d, azimuth1 = 0, elevation1=0, azimuth2=0,
-#                                                         elevation2=0, first_sphere_file_name="first_sphere.lmp",
-#                                                         second_sphere_file_name="second_sphere.lmp", temperature=temp, nstep=200000)
+simulation_num = 0
+for elevation1,elevation2 in [(0,0), (0,math.pi/2), (math.pi/2,math.pi/2)]:
+    for temp in range(300,1400,100):
+        for d in range (1,11):
+            simulation_num += 1
+            print(f"simulation num: {simulation_num}")
+            print(f"temp: {temp}")
+            print(f"d: {d}")
+            simulation_directory_path = automate_simulation(path="/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/standard cif files/Fe2O3.cif",
+                                                            radius=25, distance=d, azimuth1 = 0, elevation1=elevation1, azimuth2=0,
+                                                            elevation2=elevation2, first_sphere_file_name="first_sphere.lmp",
+                                                            second_sphere_file_name="second_sphere.lmp", temperature=temp, nstep=200000)
 
 # simulation_analysis("/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/simulations/Temperature1300_nstep16000_d5_r15_azimuth10pi_elevation10pi_azimuth20pi_elevation20pi", temperature=1300)
 # sphere = unit_cell_to_sphere("/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/standard cif files/Fe2O3.cif", radius=25, distance=0)
