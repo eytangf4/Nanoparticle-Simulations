@@ -1,10 +1,12 @@
 from ovito.io import import_file
 from ovito.modifiers import ConstructSurfaceModifier, SliceModifier
-import matplotlib.pyplot as plt
 import math
 import numpy as np
 from log import log as lammps_log
 import os
+os.environ['OVITO_GUI_MODE'] = '1'
+import matplotlib.pyplot as plt
+from matplotlib.widgets import Slider, Button
 
 def get_neck_area(simulation_path, nanoparticle_radius, distance):
     
@@ -107,9 +109,9 @@ def get_temperature(path):
 #    plt.legend()
 #    plt.show()
 
-def save_data_to_file(temperature, d, analysis_type, arr_1, arr_2):
+def save_data_to_file(temperature, d, elevation1, elevation2, analysis_type, arr_1, arr_2):
     # create folder with simulation info (eg. temp )
-    simulation_folder = f"simulation_analysis/Temperature{temperature}_distance{d}_azimuth1_0pi_elevation1_0pi_azimuth2_0pi_elevation2_0pi"
+    simulation_folder = f"simulation_analysis/Temperature{temperature}_distance{d}_azimuth1_0pi_elevation1_{elevation1}pi_azimuth2_0pi_elevation2_{elevation2}pi"
     if not os.path.exists(simulation_folder):
         os.makedirs(simulation_folder)
     np.savez(os.path.join(simulation_folder, analysis_type), arr_1 = arr_1, arr_2 = arr_2)
@@ -117,28 +119,33 @@ def save_data_to_file(temperature, d, analysis_type, arr_1, arr_2):
 # loop through all the dumps
 
 def save_analyses():
-    for temp in range (300,1400,100):
-        for d in range (9,11):
-            simulation_path_string = f'sftp://eytangf@dtn.sherlock.stanford.edu/scratch/groups/leoradm/yfwang09/NP_sintering/Temperature{temp}_nstep200000_d{d}_r25_azimuth10pi_elevation10pi_azimuth20pi_elevation20pi'
+    for elevation1,elevation2 in [(0,0), (0,math.pi/2), (math.pi/2,math.pi/2)]:
+        for temp in range (300,1400,100):
+            for d in range (1,11):
+                simulation_path_string = f'sftp://eytangf@dtn.sherlock.stanford.edu/scratch/groups/leoradm/yfwang09/NP_sintering_240724/Temperature{temp}_nstep200000_d{d}_r25_azimuth10pi_elevation1{elevation1}pi_azimuth20pi_elevation2{elevation2}pi'
 
-            # initialize neck area and distance nanoparticle ends arrs 
-            neck_area_arr = []
-            dist_ends_arr = []
-            time_step_arr = np.arange(0,201000,1000)
+                # initialize neck area and distance nanoparticle ends arrs 
+                neck_area_arr = []
+                dist_ends_arr = []
+                time_step_arr = np.arange(0,201000,1000)
 
-            for step in range (0, 201000, 1000):
-                print(f'temp: {temp} d: {d} step: {step}')
-                simulation_path_string_with_step = f'{simulation_path_string}/dump/md.nvt.{step}.dump.gz'
+                print(f'temp: {temp} d: {d} elevation 1: {elevation1} elevation2 {elevation2}')
 
-                # calculate the neck area and dist between nanoparticle ends values for the simulation step
-                neck_area = get_neck_area(simulation_path=simulation_path_string_with_step, nanoparticle_radius=25, distance=d)
-                dist_ends = get_distance_between_nanoparticle_ends(simulation_path_string_with_step)
+                for step in range (0, 201000, 1000):
+                    print(f'step: {step}')
+                    simulation_path_string_with_step = f'{simulation_path_string}/dump/md.nvt.{step}.dump.gz'
 
-                # append the values to the arrays
-                neck_area_arr.append(neck_area)
-                dist_ends_arr.append(dist_ends)
-            
-            # save the temperature, neck area, and dist ends arrays v time to individual files within the simulation folder
-            # in the 'simulation_analysis' parent folder
-            save_data_to_file(temperature=temp, d=d, analysis_type="neck_area_v_time", arr_1=time_step_arr, arr_2=neck_area_arr)
-            save_data_to_file(temperature=temp, d=d, analysis_type="dist_ends_v_time", arr_1=time_step_arr, arr_2=dist_ends_arr)
+                    # calculate the neck area and dist between nanoparticle ends values for the simulation step
+                    neck_area = get_neck_area(simulation_path=simulation_path_string_with_step, nanoparticle_radius=25, distance=d)
+                    dist_ends = get_distance_between_nanoparticle_ends(simulation_path_string_with_step)
+
+                    # append the values to the arrays
+                    neck_area_arr.append(neck_area)
+                    dist_ends_arr.append(dist_ends)
+                
+                # save the temperature, neck area, and dist ends arrays v time to individual files within the simulation folder
+                # in the 'simulation_analysis' parent folder
+                save_data_to_file(temperature=temp, d=d, elevation1=elevation1, elevation2=elevation2, analysis_type="neck_area_v_time", arr_1=time_step_arr, arr_2=neck_area_arr)
+                save_data_to_file(temperature=temp, d=d, elevation1=elevation1, elevation2=elevation2, analysis_type="dist_ends_v_time", arr_1=time_step_arr, arr_2=dist_ends_arr)
+
+# save_analyses()
