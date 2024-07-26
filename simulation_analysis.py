@@ -5,8 +5,7 @@ import numpy as np
 from log import log as lammps_log
 import os
 os.environ['OVITO_GUI_MODE'] = '1'
-import matplotlib.pyplot as plt
-from matplotlib.widgets import Slider, Button
+from fractions import Fraction
 
 def get_neck_area(simulation_path, nanoparticle_radius, distance):
     
@@ -111,10 +110,17 @@ def get_temperature(path):
 
 def save_data_to_file(temperature, d, elevation1, elevation2, analysis_type, arr_1, arr_2):
     # create folder with simulation info (eg. temp )
-    simulation_folder = f"simulation_analysis/Temperature{temperature}_distance{d}_azimuth1_0pi_elevation1_{elevation1}pi_azimuth2_0pi_elevation2_{elevation2}pi"
+    simulation_folder = f"simulation_analysis/Temperature{temperature}_distance{d}_azimuth1_0pi_elevation1_{to_fraction(elevation1)}pi_azimuth2_0pi_elevation2_{to_fraction(elevation2)}pi"
     if not os.path.exists(simulation_folder):
         os.makedirs(simulation_folder)
     np.savez(os.path.join(simulation_folder, analysis_type), arr_1 = arr_1, arr_2 = arr_2)
+
+def to_fraction(radian_angle_multiple_of_pi):
+   decimal = radian_angle_multiple_of_pi/math.pi
+   fraction = Fraction(decimal).limit_denominator()
+   str_fraction = str(fraction)
+   without_slash = str_fraction.replace("/", "over")
+   return without_slash
 
 # loop through all the dumps
 
@@ -122,14 +128,27 @@ def save_analyses():
     for elevation1,elevation2 in [(0,0), (0,math.pi/2), (math.pi/2,math.pi/2)]:
         for temp in range (300,1400,100):
             for d in range (1,11):
-                simulation_path_string = f'sftp://eytangf@dtn.sherlock.stanford.edu/scratch/groups/leoradm/yfwang09/NP_sintering_240724/Temperature{temp}_nstep200000_d{d}_r25_azimuth10pi_elevation1{elevation1}pi_azimuth20pi_elevation2{elevation2}pi'
+                simulation_folder = f"simulation_analysis/Temperature{temp}_distance{d}_azimuth1_0pi_elevation1_{to_fraction(elevation1)}pi_azimuth2_0pi_elevation2_{to_fraction(elevation2)}pi"
+
+                # if sim analysis is complete
+                simulation_path_string = f'sftp://eytangf@dtn.sherlock.stanford.edu/scratch/groups/leoradm/yfwang09/NP_sintering_240724/Temperature{temp}_nstep200000_d{d}_r25_azimuth10pi_elevation1{to_fraction(elevation1)}pi_azimuth20pi_elevation2{to_fraction(elevation2)}pi'
+                neckarea_npzfile = os.path.join(simulation_folder, 'neck_area_v_time.npz')
+                distends_npzfile = os.path.join(simulation_folder, 'dist_ends_v_time.npz')
+                if (os.path.exists(neckarea_npzfile)) and (os.path.exists(distends_npzfile)):
+                    continue
 
                 # initialize neck area and distance nanoparticle ends arrs 
                 neck_area_arr = []
                 dist_ends_arr = []
                 time_step_arr = np.arange(0,201000,1000)
 
-                print(f'temp: {temp} d: {d} elevation 1: {elevation1} elevation2 {elevation2}')
+                try:
+                    simulation_path_string_with_step = f'{simulation_path_string}/dump/md.nvt.200000.dump.gz'
+                    get_neck_area(simulation_path=simulation_path_string_with_step, nanoparticle_radius=25, distance=d)
+                except:
+                    continue
+
+                print(f'temp: {temp} d: {d} elevation 1: {to_fraction(elevation1)} elevation2: {to_fraction(elevation2)}')
 
                 for step in range (0, 201000, 1000):
                     print(f'step: {step}')
@@ -148,4 +167,4 @@ def save_analyses():
                 save_data_to_file(temperature=temp, d=d, elevation1=elevation1, elevation2=elevation2, analysis_type="neck_area_v_time", arr_1=time_step_arr, arr_2=neck_area_arr)
                 save_data_to_file(temperature=temp, d=d, elevation1=elevation1, elevation2=elevation2, analysis_type="dist_ends_v_time", arr_1=time_step_arr, arr_2=dist_ends_arr)
 
-# save_analyses()
+save_analyses()
