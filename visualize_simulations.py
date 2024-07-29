@@ -360,12 +360,12 @@ def visualize_data_by_spacebar_b_key(temp, d, elevation1, elevation2):
             dist_ends_arr = dist_ends_arr_holder[arr_idx[0]]
 
             if temp == None:
-                neck_area_line, dist_ends_line = plot_simulation_data_from_arrs(ax, time_step_arr, neck_area_arr, dist_ends_arr, label=f'temp = {arr_idx[0]}')
+                neck_area_line, dist_ends_line = plot_simulation_data_from_arrs(ax, time_step_arr, neck_area_arr, dist_ends_arr, label=f'temp = {str(idx_to_temp((arr_idx[0]+1)))}')
                 neck_area_lines.append(neck_area_line)
                 dist_ends_lines.append(dist_ends_line)
 
             if d == None:
-                neck_area_line, dist_ends_line = plot_simulation_data_from_arrs(ax, time_step_arr, neck_area_arr, dist_ends_arr, label=f'd = {arr_idx[0]}')
+                neck_area_line, dist_ends_line = plot_simulation_data_from_arrs(ax, time_step_arr, neck_area_arr, dist_ends_arr, label=f'd = {arr_idx[0]+1}')
                 neck_area_lines.append(neck_area_line)
                 dist_ends_lines.append(dist_ends_line)
 
@@ -406,6 +406,11 @@ def visualize_data_by_spacebar_b_key(temp, d, elevation1, elevation2):
     # Keep the plot window open
     plt.show()
 
+def idx_to_temp(idx):
+    if idx == 1:
+        return 300
+    else:
+        return idx_to_temp(idx-1) + 100
 
 
-visualize_data_by_spacebar_b_key(temp=None, elevation1=0, elevation2=0, d=10)
+visualize_data_by_spacebar_b_key(temp=1300, elevation1=0, elevation2=0, d=None)
