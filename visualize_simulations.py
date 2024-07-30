@@ -327,6 +327,14 @@ def plot_simulation_data_from_arrs(ax, time_step_arr, neck_area_arr, dist_ends_a
 def plot_simulation_data_equilibrated(ax, neck_area_arr_holder, dist_ends_arr_holder):
 
     temp_arr = [300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300]
+    average_equilibrated_neck_area_points = []
+    average_equilibrated_dist_ends_points = []
+
+    # set subplot axes limits
+    ax[0].set_ylim([0, 600])
+    ax[1].set_ylim([95, 115])
+
+    # set x ticks, 1 tick for each temperature
     ax[0].set_xticks(temp_arr)
     ax[1].set_xticks(temp_arr)
 
@@ -339,9 +347,13 @@ def plot_simulation_data_equilibrated(ax, neck_area_arr_holder, dist_ends_arr_ho
         average_neck_area_at_temp = np.average(equilibrated_neck_area_arr)
         average_dist_ends_at_temp = np.average(equilibrated_dist_ends_arr)
 
-        # plot data
-        ax[0].plot(temp_arr[i], average_neck_area_at_temp, label=f"{temp_arr[i]} K", marker='o')
-        ax[1].plot(temp_arr[i], average_dist_ends_at_temp, label=f"{temp_arr[i]} K", marker='o')
+        # add them to the arrs to plot
+        average_equilibrated_neck_area_points.append(average_neck_area_at_temp)
+        average_equilibrated_dist_ends_points.append(average_dist_ends_at_temp)
+
+    # plot data
+    ax[0].plot(temp_arr, average_equilibrated_neck_area_points, linestyle='dashed', marker='o')
+    ax[1].plot(temp_arr, average_equilibrated_dist_ends_points, linestyle='dashed', marker='o')
 
 def plot_simulation_data_from_arrs_convolved(ax, time_step_arr, neck_area_arr, dist_ends_arr, label):
     # convolve neck area and dist ends
@@ -582,10 +594,7 @@ def visualize_equilibriated_arrs_v_temp(d, elevation1, elevation2):
 
     plot_simulation_data_equilibrated(ax=ax, neck_area_arr_holder=neck_area_arr_holder, dist_ends_arr_holder=dist_ends_arr_holder)
 
-    # update the legends
-    ax[0].legend()
-    ax[1].legend()
-
     plt.show()
 
 visualize_equilibriated_arrs_v_temp(d=5, elevation1=0, elevation2=0)
+visualize_data_by_spacebar_b_key(temp=None, d=5, elevation1=0, elevation2=0)
