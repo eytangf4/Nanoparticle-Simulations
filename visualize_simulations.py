@@ -131,7 +131,13 @@ def grab_simulation_data_range(temp, d, elevation1, elevation2):
     # if elevation1 wasn't entered
     if elevation1 == None:
 
-        for i in range(0, math.pi, math.pi/2):
+        for i in range(0, 2):
+
+            if i == 0:
+                i = 0
+
+            elif i ==1:
+                i = math.pi/2
 
             # get arrs to plot
             time_step_arr, neck_area_arr, dist_ends_arr = load_simulation_data(temp=temp, d=d, elevation1=i, elevation2=elevation2)
@@ -144,7 +150,13 @@ def grab_simulation_data_range(temp, d, elevation1, elevation2):
     # if elevation2 wasn't entered
     if elevation2 == None:
 
-        for i in range(0, math.pi, math.pi/2):
+        for i in range(0, 2):
+
+            if i == 0:
+                i = 0
+
+            elif i ==1:
+                i = math.pi/2
 
             # get arrs to plot
             time_step_arr, neck_area_arr, dist_ends_arr = load_simulation_data(temp=temp, d=d, elevation1=elevation1, elevation2=i)
@@ -312,6 +324,43 @@ def plot_simulation_data_from_arrs(ax, time_step_arr, neck_area_arr, dist_ends_a
 
     return neck_area_line, dist_ends_line
 
+def plot_simulation_data_equilibrated(ax, neck_area_arr_holder, dist_ends_arr_holder):
+
+    temp_arr = [300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300]
+    ax[0].set_xticks(temp_arr)
+    ax[1].set_xticks(temp_arr)
+
+    for i in range(0, 11):
+        # get the neck area and dist ends data from time step 150,000 to 200,000 (equilibrated data)
+        equilibrated_neck_area_arr = neck_area_arr_holder[i][150:202]
+        equilibrated_dist_ends_arr = dist_ends_arr_holder[i][150:202]
+
+        # get the averages
+        average_neck_area_at_temp = np.average(equilibrated_neck_area_arr)
+        average_dist_ends_at_temp = np.average(equilibrated_dist_ends_arr)
+
+        # plot data
+        ax[0].plot(temp_arr[i], average_neck_area_at_temp, label=f"{temp_arr[i]} K", marker='o')
+        ax[1].plot(temp_arr[i], average_dist_ends_at_temp, label=f"{temp_arr[i]} K", marker='o')
+
+def plot_simulation_data_from_arrs_convolved(ax, time_step_arr, neck_area_arr, dist_ends_arr, label):
+    # convolve neck area and dist ends
+    convolve_arr = [.1, .1, .1, .1, .1, .1, .1, .1, .1, .1]
+    convolved_neck_area_arr = np.convolve(neck_area_arr, convolve_arr, mode='same')
+    convolved_dist_ends_arr = np.convolve(dist_ends_arr, convolve_arr, mode='same')
+
+    # plot data and save artists
+    convolved_neck_area_line, = ax[0].plot(time_step_arr, convolved_neck_area_arr, label=label)
+    convolved_dist_ends_line, = ax[1].plot(time_step_arr, convolved_dist_ends_arr, label=label)
+
+    # update the legends
+    ax[0].legend()
+    ax[1].legend()
+
+    plt.draw()
+
+    return convolved_neck_area_line, convolved_dist_ends_line
+
 def visualize_data_by_spacebar_b_key(temp, d, elevation1, elevation2):
     # initalize figure and subplots
     fig, ax = plt.subplots(nrows=1, ncols=2)
@@ -342,7 +391,7 @@ def visualize_data_by_spacebar_b_key(temp, d, elevation1, elevation2):
         fig.suptitle(f'Changing D for Temperature: {temp} Elevation1: {to_fraction(elevation1)} Elevation2: {to_fraction(elevation2)}')
     elif elevation1 == None:
         fig.suptitle(f'Changing Elevation1 for D: {d} Temperature: {temp} Elevation2: {to_fraction(elevation2)}')
-    elif temp == None:
+    elif elevation2 == None:
         fig.suptitle(f'Changing Elevation2 for D: {d} Temperature: {temp} Elevation1: {to_fraction(elevation1)}')
 
     neck_area_lines = []
@@ -412,5 +461,131 @@ def idx_to_temp(idx):
     else:
         return idx_to_temp(idx-1) + 100
 
+def visualize_data_by_spacebar_b_key_convolved(temp, d, elevation1, elevation2):
+    # initalize figure and subplots
+    fig, ax = plt.subplots(nrows=1, ncols=2)
 
-visualize_data_by_spacebar_b_key(temp=1300, elevation1=0, elevation2=0, d=None)
+    fig.canvas.manager.full_screen_toggle() # keep figure in full screen
+
+    # set subplots titles
+    ax[0].set_title('Neck Area v Time')
+    ax[1].set_title('Distance Between Nanoparticle Ends v Time')
+
+    # set subplots axes
+    ax[0].set_xlabel('Time (ADD CONVERSION BETWEEN STEPS AND ACTUAL TIME HERE)')
+    ax[0].set_ylabel('Neck Area ($\\mathregular{Angstrom^{2}}$)')
+
+    ax[1].set_xlabel('Time (ADD CONVERSION BETWEEN STEPS AND ACTUAL TIME HERE)')
+    ax[1].set_ylabel('Distance Between Nanoparticle Ends On X-Axis (Angstrom)')
+
+    # set subplot axes limits
+    ax[0].set_ylim([0, 600])
+    ax[1].set_ylim([95, 115])
+
+    plt.show(block=False)  # Show the plot non-blocking so that the plot can be dynamic
+
+    # set the figure name
+    if temp == None:
+        fig.suptitle(f'Convolved Changing Temperature for D: {d} Elevation1: {to_fraction(elevation1)} Elevation2: {to_fraction(elevation2)}')
+    elif d == None:
+        fig.suptitle(f'Convolved Changing D for Temperature: {temp} Elevation1: {to_fraction(elevation1)} Elevation2: {to_fraction(elevation2)}')
+    elif elevation1 == None:
+        fig.suptitle(f'Convolved Changing Elevation1 for D: {d} Temperature: {temp} Elevation2: {to_fraction(elevation2)}')
+    elif elevation2 == None:
+        fig.suptitle(f'Convolved Changing Elevation2 for D: {d} Temperature: {temp} Elevation1: {to_fraction(elevation1)}')
+
+    neck_area_lines = []
+    dist_ends_lines = []
+
+    time_step_arr_holder, neck_area_arr_holder, dist_ends_arr_holder = grab_simulation_data_range(temp, d, elevation1, elevation2)
+
+    arr_idx = [0]
+
+    def on_key2(event, fig, ax, temp, d, elevation1, elevation2, arr_idx):
+        # if the space bar is pressed, plot a curve
+        if event.key == ' ':
+            time_step_arr = time_step_arr_holder[arr_idx[0]]
+            neck_area_arr = neck_area_arr_holder[arr_idx[0]]
+            dist_ends_arr = dist_ends_arr_holder[arr_idx[0]]
+
+            if temp == None:
+                convolved_neck_area_line, convolved_dist_ends_line = plot_simulation_data_from_arrs_convolved(ax, time_step_arr, neck_area_arr, dist_ends_arr, label=f'temp = {str(idx_to_temp((arr_idx[0]+1)))}')
+                neck_area_lines.append(convolved_neck_area_line)
+                dist_ends_lines.append(convolved_dist_ends_line)
+
+            if d == None:
+                convolved_neck_area_line, convolved_dist_ends_line = plot_simulation_data_from_arrs_convolved(ax, time_step_arr, neck_area_arr, dist_ends_arr, label=f'd = {arr_idx[0]+1}')
+                neck_area_lines.append(convolved_neck_area_line)
+                dist_ends_lines.append(convolved_dist_ends_line)
+
+            if elevation1 == None:
+                convolved_neck_area_line, convolved_dist_ends_line = plot_simulation_data_from_arrs_convolved(ax, time_step_arr, neck_area_arr, dist_ends_arr, label=f'elevation1 = {'0' if arr_idx[0] == 0 else '1over2_pi'}')
+                neck_area_lines.append(convolved_neck_area_line)
+                dist_ends_lines.append(convolved_dist_ends_line)
+
+            if elevation2 == None:
+                convolved_neck_area_line, convolved_dist_ends_line = plot_simulation_data_from_arrs_convolved(ax, time_step_arr, neck_area_arr, dist_ends_arr, label=f'elevation2 = {'0' if arr_idx[0] == 0 else '1over2_pi'}')
+                neck_area_lines.append(convolved_neck_area_line)
+                dist_ends_lines.append(convolved_dist_ends_line)
+        
+            arr_idx[0] += 1 # increment arr_idx
+
+        # if the 'b' key is pressed, remove the last curve plotted
+        elif event.key == 'b':
+            # remove the most recent lines plotted from the subplots
+            most_recent_neck_area_line = neck_area_lines.pop()
+            most_recent_dist_ends_line = dist_ends_lines.pop()
+            most_recent_neck_area_line.remove()
+            most_recent_dist_ends_line.remove()
+            
+            # update the legends
+            ax[0].legend()
+            ax[1].legend()
+
+            plt.draw() # update the plot
+        
+            arr_idx[0] -= 1 # decrement arr_idx
+
+
+    # 'key_press_event': registers an event handler for key press events on the figure's canvas
+    # 'lambda event: on_key2(event, fig, ax, temp, d, elevation1, elevation2)':
+    # calls function 'lambda' which executes 'onkey2' when the key press occurs
+    fig.canvas.mpl_connect('key_press_event', lambda event: on_key2(event, fig, ax, temp, d, elevation1, elevation2, arr_idx))
+
+    # Keep the plot window open
+    plt.show()
+
+def visualize_equilibriated_arrs_v_temp(d, elevation1, elevation2):
+    # initalize figure and subplots
+    fig, ax = plt.subplots(nrows=1, ncols=2)
+
+    fig.canvas.manager.full_screen_toggle() # keep figure in full screen
+
+    fig.suptitle(f"Average Equilibrated Data for D={d}A, Elevation1={to_fraction(elevation1)}, Elevation2={to_fraction(elevation2)} for Temps 300-1300K")
+
+    # set subplots titles
+    ax[0].set_title('Equilibrated Neck Area v Temperature')
+    ax[1].set_title('Equilibrated Distance Between Nanoparticle Ends v Temperature')
+
+    # set subplots axes
+    ax[0].set_xlabel('Temperature (K)')
+    ax[0].set_ylabel('Average Neck Area ($\\mathregular{Angstrom^{2}}$)')
+
+    ax[1].set_xlabel('Temperature (K)')
+    ax[1].set_ylabel('Average Distance Between Nanoparticle Ends On X-Axis (Angstrom)')
+
+    # # set subplot axes limits
+    # ax[0].set_ylim([0, 600])
+    # ax[1].set_ylim([95, 115])
+
+    time_step_arr_holder, neck_area_arr_holder, dist_ends_arr_holder = grab_simulation_data_range(temp=None, d=d, elevation1=elevation1, elevation2=elevation2)
+
+    plot_simulation_data_equilibrated(ax=ax, neck_area_arr_holder=neck_area_arr_holder, dist_ends_arr_holder=dist_ends_arr_holder)
+
+    # update the legends
+    ax[0].legend()
+    ax[1].legend()
+
+    plt.show()
+
+visualize_equilibriated_arrs_v_temp(d=5, elevation1=0, elevation2=0)
