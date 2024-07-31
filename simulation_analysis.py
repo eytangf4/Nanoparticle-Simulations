@@ -194,13 +194,14 @@ def save_ydist_analyses():
                 ydistends_npzfile = os.path.join(simulation_folder, 'ydist_ends_v_time.npz')
                 # check if the file already exists
                 if (os.path.exists(ydistends_npzfile)):
+                    print("exists")
                     continue
 
                 # initialize ydistance nanoparticle ends arr
                 ydist_ends_arr = []
                 time_step_arr = np.arange(0,201000,1000)
 
-                # # if the file is not calculated yet (from sherlock)
+                # # if the simulation is not calculated yet on sherlock
                 # try:
                 #     simulation_path_string_with_step = f'{simulation_path_string}/dump/md.nvt.200000.dump.gz'
                 #     get_ydistance_between_nanoparticle_ends(simulation_path_string_with_step)

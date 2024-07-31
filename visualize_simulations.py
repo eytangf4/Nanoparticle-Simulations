@@ -182,10 +182,10 @@ def visualize_data():
     ax[1].set_title('Distance Between Nanoparticle Ends v Time')
 
     # set subplots axes
-    ax[0].set_xlabel('Time (ADD CONVERSION BETWEEN STEPS AND ACTUAL TIME HERE)')
+    ax[0].set_xlabel('Time (Femtosecond)')
     ax[0].set_ylabel('Neck Area ($\\mathregular{Angstrom^{2}}$)')
 
-    ax[1].set_xlabel('Time (ADD CONVERSION BETWEEN STEPS AND ACTUAL TIME HERE)')
+    ax[1].set_xlabel('Time (Femtosecond)')
     ax[1].set_ylabel('Distance Between Nanoparticle Ends On X-Axis (Angstrom)')
 
     # set subplot axes limits
@@ -292,10 +292,10 @@ def visualize_data2(temp, d, elevation1, elevation2):
             ax[1].set_title('Distance Between Nanoparticle Ends v Time')
 
             # set subplots axes
-            ax[0].set_xlabel('Time (ADD CONVERSION BETWEEN STEPS AND ACTUAL TIME HERE)')
+            ax[0].set_xlabel('Time (Femtosecond)')
             ax[0].set_ylabel('Neck Area ($\\mathregular{Angstrom^{2}}$)')
 
-            ax[1].set_xlabel('Time (ADD CONVERSION BETWEEN STEPS AND ACTUAL TIME HERE)')
+            ax[1].set_xlabel('Time (Femtosecond)')
             ax[1].set_ylabel('Distance Between Nanoparticle Ends On X-Axis (Angstrom)')
 
             # set subplot axes limits
@@ -384,10 +384,10 @@ def visualize_data_by_spacebar_b_key(temp, d, elevation1, elevation2):
     ax[1].set_title('Distance Between Nanoparticle Ends v Time')
 
     # set subplots axes
-    ax[0].set_xlabel('Time (ADD CONVERSION BETWEEN STEPS AND ACTUAL TIME HERE)')
+    ax[0].set_xlabel('Time (Femtosecond)')
     ax[0].set_ylabel('Neck Area ($\\mathregular{Angstrom^{2}}$)')
 
-    ax[1].set_xlabel('Time (ADD CONVERSION BETWEEN STEPS AND ACTUAL TIME HERE)')
+    ax[1].set_xlabel('Time (Femtosecond)')
     ax[1].set_ylabel('Distance Between Nanoparticle Ends On X-Axis (Angstrom)')
 
     # set subplot axes limits
@@ -484,10 +484,10 @@ def visualize_data_by_spacebar_b_key_convolved(temp, d, elevation1, elevation2):
     ax[1].set_title('Distance Between Nanoparticle Ends v Time')
 
     # set subplots axes
-    ax[0].set_xlabel('Time (ADD CONVERSION BETWEEN STEPS AND ACTUAL TIME HERE)')
+    ax[0].set_xlabel('Time (Femtosecond)')
     ax[0].set_ylabel('Neck Area ($\\mathregular{Angstrom^{2}}$)')
 
-    ax[1].set_xlabel('Time (ADD CONVERSION BETWEEN STEPS AND ACTUAL TIME HERE)')
+    ax[1].set_xlabel('Time (Femtosecond)')
     ax[1].set_ylabel('Distance Between Nanoparticle Ends On X-Axis (Angstrom)')
 
     # set subplot axes limits
@@ -596,5 +596,6 @@ def visualize_equilibriated_arrs_v_temp(d, elevation1, elevation2):
 
     plt.show()
 
-visualize_equilibriated_arrs_v_temp(d=5, elevation1=0, elevation2=0)
 visualize_data_by_spacebar_b_key(temp=None, d=5, elevation1=0, elevation2=0)
+visualize_data_by_spacebar_b_key_convolved(temp=None, d=5, elevation1=0, elevation2=0)
+visualize_equilibriated_arrs_v_temp(d=5, elevation1=0, elevation2=0)
