@@ -17,7 +17,8 @@
 import os
 os.environ['OVITO_GUI_MODE'] = '1'
 from functions import *
-from simulation_analysis import *
+from functionsFeO import *
+# from simulation_analysis import *
 
 # dist_ends = get_distance_between_nanoparticle_ends(simulation_path='sftp://eytangf@dtn.sherlock.stanford.edu/scratch/groups/leoradm/yfwang09/NP_sintering/Temperature400_nstep200000_d3_r25_azimuth10pi_elevation10pi_azimuth20pi_elevation20pi/dump/md.nvt.200000.dump.gz')
 # print(f"neck area: {dist_ends}")
@@ -59,45 +60,45 @@ from simulation_analysis import *
 # plt.show()
 
 
-# set_up_two_nanoparticles(path="/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/standard cif files/Fe2O3.cif",
-#                                          radius=10, distance=2, azimuth1 = math.pi/6, elevation1=math.pi/3, azimuth2=math.pi/3,
-#                                          elevation2=math.pi/6, first_sphere_file_name="first_sphere.lmp",
-#                                          second_sphere_file_name="second_sphere.lmp")
+FeOset_up_two_nanoparticles(path="/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/standard cif files/FeO.cif",
+                                         radius=25, distance=5, azimuth1 = 0, elevation1=0, azimuth2=0,
+                                         elevation2=0, first_sphere_file_name="first_sphere.lmp",
+                                         second_sphere_file_name="second_sphere.lmp", specific_simulation_directory_path="test folder")
 
 # simulation_directory_path = automate_simulation(path="/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/standard cif files/Fe2O3.cif",
 #                             radius=25, distance=5, azimuth1 = 0, elevation1=0, azimuth2=0,
 #                             elevation2=0, first_sphere_file_name="first_sphere.lmp",
 #                             second_sphere_file_name="second_sphere.lmp", temperature=1300, nstep=200000)
 
-simulation_num = 0
-for elevation1,elevation2 in [(0,0), (0,math.pi/2), (math.pi/2,math.pi/2)]:
-    for temp in range(300,1400,100):
-        for d in range (1,11):
-            simulation_num += 1
-            print(f"simulation num: {simulation_num}")
-            print(f"temp: {temp}")
-            print(f"d: {d}")
-            simulation_directory_path = automate_simulation(path="/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/standard cif files/Alpha Fe2O3.cif",
-                                                            radius=25, distance=d, azimuth1 = 0, elevation1=elevation1, azimuth2=0,
-                                                            elevation2=elevation2, first_sphere_file_name="first_sphere.lmp",
-                                                            second_sphere_file_name="second_sphere.lmp", temperature=temp, nstep=200000)
+# simulation_num = 0
+# for elevation1,elevation2 in [(0,0), (0,math.pi/2), (math.pi/2,math.pi/2)]:
+#     for temp in range(300,1400,100):
+#         for d in range (1,11):
+#             simulation_num += 1
+#             print(f"simulation num: {simulation_num}")
+#             print(f"temp: {temp}")
+#             print(f"d: {d}")
+#             simulation_directory_path = automate_simulation(path="/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/standard cif files/Alpha Fe2O3.cif",
+#                                                             radius=25, distance=d, azimuth1 = 0, elevation1=elevation1, azimuth2=0,
+#                                                             elevation2=elevation2, first_sphere_file_name="first_sphere.lmp",
+#                                                             second_sphere_file_name="second_sphere.lmp", temperature=temp, nstep=200000)
 
-# simulation_analysis("/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/simulations/Temperature1300_nstep16000_d5_r15_azimuth10pi_elevation10pi_azimuth20pi_elevation20pi", temperature=1300)
-# sphere = unit_cell_to_sphere("/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/standard cif files/Fe2O3.cif", radius=25, distance=0)
+
+# sphere = FeOunit_cell_to_sphere("/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/standard cif files/FeO.cif", radius=25, distance=0)
 # print("SPHERE")
-# sphere_net_charge = calculate_net_charge(sphere)
-# save_lmp_data(sphere, "sphere.lmp")
+# sphere_net_charge = FeOcalculate_net_charge(sphere)
+# FeOsave_lmp_data(sphere, "sphere.lmp")
 
-# neutralized_sphere = neutralize_charge(sphere, sphere_net_charge)
+# neutralized_sphere = FeOneutralize_charge(sphere, sphere_net_charge)
 # print("\n")
 # print("NEUTRALIZED SPHERE")
-# calculate_net_charge(neutralized_sphere)
-# save_lmp_data(neutralized_sphere, "neutralized_fe203_nanoparticle_radius_10.lmp")
+# FeOcalculate_net_charge(neutralized_sphere)
+# FeOsave_lmp_data(neutralized_sphere, "neutralized_feo_nanoparticle_radius_25.lmp")
 
-# neutralized_sphere_charge_density_check, charge_max, charge_min = check_charge_density(neutralized_sphere, num_particles=60)
+# neutralized_sphere_charge_density_check, charge_max, charge_min = FeOcheck_charge_density(neutralized_sphere, num_particles=60)
 # print("\n")
 # print("CHARGE DENSITY CHECK")
-# save_lmp_dump(neutralized_sphere_charge_density_check, "neutralized_sphere_charge_density_check.lmp")
+# FeOsave_lmp_dump(neutralized_sphere_charge_density_check, "neutralized_sphere_charge_density_check.lmp")
 
 # charge_max_arr = np.zeros(12)
 # charge_min_arr = np.zeros(12)

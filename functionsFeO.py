@@ -8,27 +8,27 @@ import os
 import shutil
 from fractions import Fraction
 
-def calculate_net_charge(data):
+def FeOcalculate_net_charge(data):
 
     particle_types = data.particles.particle_types[...]
 
-    num_ferric_iron = 0
+    num_ferrous_iron = 0
     num_oxide = 0
 
     for particle_type in particle_types:
-        # 1 = Fe3+
+        # 1 = Fe2+
         if particle_type == 1:
-            num_ferric_iron += 1
+            num_ferrous_iron += 1
         # 2 = O2-
         if particle_type == 2:
             num_oxide += 1
 
-    ferric_iron_charge = num_ferric_iron * 3
+    ferrous_iron_charge = num_ferrous_iron * 2
     oxide_charge = num_oxide * 2
 
-    net_charge = ferric_iron_charge - oxide_charge
+    net_charge = ferrous_iron_charge - oxide_charge
 
-    print(f"Number of Fe3+ atoms: {num_ferric_iron}")
+    print(f"Number of Fe2+ atoms: {num_ferrous_iron}")
     print(f"Number of O2- atoms: {num_oxide}")
     if net_charge > 0:
         print(f"Net Charge: +{net_charge}")
@@ -37,7 +37,7 @@ def calculate_net_charge(data):
 
     return net_charge
 
-def unit_cell_to_sphere(path, radius, distance):
+def FeOunit_cell_to_sphere(path, radius, distance):
     pipeline = import_file(path)
     pipeline.modifiers.append(ReplicateModifier(num_x=radius//2, num_y=radius//2, num_z=radius//2))
 
@@ -79,16 +79,16 @@ def unit_cell_to_sphere(path, radius, distance):
     return data
 
 # this code will only run if the net charge is not 0
-def neutralize_charge(data, original_net_charge):
+def FeOneutralize_charge(data, original_net_charge):
 
    # initialize needed variables
    original_number_of_particles = data.particles.count
 
    # if the net charge is positive
    if (original_net_charge > 0):
-      # we need to remove Fe3+ ions because they have a positive charge (so removing them will lower the charge)
+      # we need to remove Fe2+ ions because they have a positive charge (so removing them will lower the charge)
       to_remove_particle_type = 1
-      num_particles_to_remove = original_net_charge / 3
+      num_particles_to_remove = original_net_charge / 2
    # if the net charge is negative
    elif (original_net_charge < 0):
       # we need to remove O2- ions because they have a negative charge (so removing them will increase the charge)
@@ -105,7 +105,7 @@ def neutralize_charge(data, original_net_charge):
 
    while (current_num_particles_to_remove > 0):
       data.particles_.create_property('Selection')
-      particles_to_remove_idx_arr = create_arr_of_indeces_to_particles_of_right_type_and_furthest_away(data, to_remove_particle_type)
+      particles_to_remove_idx_arr = FeOcreate_arr_of_indeces_to_particles_of_right_type_and_furthest_away(data, to_remove_particle_type)
 
       # if the number of particles in the farthest 'shell' of particles to remove (farthest from the center)
       # is less than or equal to the number
@@ -136,12 +136,12 @@ def neutralize_charge(data, original_net_charge):
       raise Exception("The number of particles that were actually removed did not "
                       "match the number of particles that should have been removed")
 
-   # if we are removing Fe3+ ions
+   # if we are removing Fe2+ ions
    if to_remove_particle_type == 1:
       print("\n")
       print("Neutralization")
       print("--------------")
-      print(f"Number of Fe3+ ions removed: {num_particles_to_remove}")
+      print(f"Number of Fe2+ ions removed: {num_particles_to_remove}")
 
    # if we are removing O2- ions
    if to_remove_particle_type == 2:
@@ -156,7 +156,7 @@ def neutralize_charge(data, original_net_charge):
 # out: an array of indeces
 # effect: produces an array that contains the indices of the particles of the right type
 #         who are furthest away from the center of the sphere
-def create_arr_of_indeces_to_particles_of_right_type_and_furthest_away(data, to_remove_particle_type):
+def FeOcreate_arr_of_indeces_to_particles_of_right_type_and_furthest_away(data, to_remove_particle_type):
    # initialize variables
    distances_arr = data.particles['DistanceCenter']
    particle_types_arr = data.particles.particle_type
@@ -187,7 +187,7 @@ def create_arr_of_indeces_to_particles_of_right_type_and_furthest_away(data, to_
 
    return current_max_distance_of_particle_of_right_type_idx_arr
 
-def rotate_translate_sphere(data, azimuth, elevation, translation):
+def FeOrotate_translate_sphere(data, azimuth, elevation, translation):
    data.apply(AffineTransformationModifier(
       operate_on={'particles'},
       transformation=[[math.cos(elevation), 0, math.sin(elevation), translation],
@@ -196,11 +196,11 @@ def rotate_translate_sphere(data, azimuth, elevation, translation):
    ))
    return data
 
-# def duplicate_sphere(data):
+# def FeOduplicate_sphere(data):
 #   data.apply(ReplicateModifier(num_x=2, operate_on={'particles'}, adjust_box=False))
 #   return data
 
-# def adjust_distance_between_spheres(data, radius, distance):
+# def FeOadjust_distance_between_spheres(data, radius, distance):
 #   data.apply(ExpressionSelectionModifier(expression=f"Position.X > {radius}"))
 #   data.apply(AffineTransformationModifier(
 #      operate_on={'particles'},
@@ -219,35 +219,35 @@ def rotate_translate_sphere(data, azimuth, elevation, translation):
 #   ))
 #   return data
 
-def set_up_nanoparticle(path, radius, azimuth, elevation, translation, distance):
-   sphere = unit_cell_to_sphere(path,radius, distance=distance)
+def FeOset_up_nanoparticle(path, radius, azimuth, elevation, translation, distance):
+   sphere = FeOunit_cell_to_sphere(path,radius, distance=distance)
 
    # calculate the net charge of the sphere
    print("Original Net Charge")
    print("-------------------")
-   original_net_charge = calculate_net_charge(sphere)
+   original_net_charge = FeOcalculate_net_charge(sphere)
 
    # if the net charge of the spherical nanoparticle is not already neutralized
    if (original_net_charge != 0):
-      sphere = neutralize_charge(sphere, original_net_charge)
+      sphere = FeOneutralize_charge(sphere, original_net_charge)
 
    # calculate the net charge of the sphere again
    print("\n")
    print("Neutralized Net Charge")
    print("----------------------")
-   neutralized_net_charge = calculate_net_charge(sphere)
+   neutralized_net_charge = FeOcalculate_net_charge(sphere)
 
-   rotated_translated_sphere = rotate_translate_sphere(sphere, azimuth=azimuth, elevation=elevation, translation=translation)
+   rotated_translated_sphere = FeOrotate_translate_sphere(sphere, azimuth=azimuth, elevation=elevation, translation=translation)
    # duplicated_spheres = duplicate_sphere(rotated_sphere)
    # apart_spheres = adjust_distance_between_spheres(duplicated_spheres, radius=radius, distance=distance)
    return rotated_translated_sphere
 
-def set_up_two_nanoparticles(path, radius, azimuth1, elevation1, azimuth2, elevation2, distance, first_sphere_file_name, second_sphere_file_name, specific_simulation_directory_path):
-   first_sphere = set_up_nanoparticle(path, radius, azimuth1, elevation1, translation=0, distance=distance)
-   save_lmp_data(first_sphere, f"{specific_simulation_directory_path}/{first_sphere_file_name}")
+def FeOset_up_two_nanoparticles(path, radius, azimuth1, elevation1, azimuth2, elevation2, distance, first_sphere_file_name, second_sphere_file_name, specific_simulation_directory_path):
+   first_sphere = FeOset_up_nanoparticle(path, radius, azimuth1, elevation1, translation=0, distance=distance)
+   FeOsave_lmp_data(first_sphere, f"{specific_simulation_directory_path}/{first_sphere_file_name}")
 
-   second_sphere = set_up_nanoparticle(path, radius, azimuth2, elevation2, translation=((radius*2)+distance), distance=distance)
-   save_lmp_data(second_sphere, f"{specific_simulation_directory_path}/{second_sphere_file_name}")
+   second_sphere = FeOset_up_nanoparticle(path, radius, azimuth2, elevation2, translation=((radius*2)+distance), distance=distance)
+   FeOsave_lmp_data(second_sphere, f"{specific_simulation_directory_path}/{second_sphere_file_name}")
 
    combined_spheres_pipeline = import_file(f'{specific_simulation_directory_path}/{first_sphere_file_name}')
    # Insert the particles from a second file into the dataset. 
@@ -255,26 +255,26 @@ def set_up_two_nanoparticles(path, radius, azimuth1, elevation1, azimuth2, eleva
    modifier.source.load(f'{specific_simulation_directory_path}/{second_sphere_file_name}')
    combined_spheres_pipeline.modifiers.append(modifier)
 
-   save_lmp_data(combined_spheres_pipeline, file_path=f"{specific_simulation_directory_path}/combined_spheres.lmp")
+   FeOsave_lmp_data(combined_spheres_pipeline, file_path=f"{specific_simulation_directory_path}/combined_spheres.lmp")
 
-def save_lmp_data(data, file_path):
+def FeOsave_lmp_data(data, file_path):
    export_file(data, file=file_path, format="lammps/data", atom_style="charge")
 
-def save_lmp_dump(data, file_path):
+def FeOsave_lmp_dump(data, file_path):
    export_file(data, file=file_path, format="lammps/dump", columns = ["Particle Type", "Position.X", "Position.Y", "Position.Z", "ChargeDensity"])
 
-def check_charge_density(data, num_particles):
-   if ((num_particles % 5) != 0):
-      raise Exception("Your cutoff is not a multiple of 5. Please change it to a multiple of 5 since Fe2O3 has 5 particles in it.")
+def FeOcheck_charge_density(data, num_particles):
+   if ((num_particles % 2) != 0):
+      raise Exception("Your cutoff is not a multiple of 2. Please change it to a multiple of 2 since FeO has 2 particles in it.")
    
    charge_density_arr = np.zeros(data.particles.count)
 
    neighbor_finder = NearestNeighborFinder(N=num_particles, data_collection=data)
    for idx in range(len(charge_density_arr)):
-      # if the particle is Fe3+
+      # if the particle is Fe2+
       if data.particles.particle_types[idx] == 1:
          # initialize the particle charge variable with the charge of the selected particle
-         particle_charge_density = 3
+         particle_charge_density = 2
       
       # if the particle is O2-
       elif data.particles.particle_types[idx] == 2:
@@ -287,10 +287,10 @@ def check_charge_density(data, num_particles):
       num_particles_check = 1
       
       for neighbor in neighbor_finder.find(idx):
-         # if the particle is Fe3+
+         # if the particle is Fe2+
          if data.particles.particle_types[neighbor.index] == 1:
-            # add the charge of the Fe3+ neighbor to the particle charge
-            particle_charge_density += 3
+            # add the charge of the Fe2+ neighbor to the particle charge
+            particle_charge_density += 2
          
          # if the particle is O2-
          elif data.particles.particle_types[neighbor.index] == 2:
@@ -317,10 +317,10 @@ def check_charge_density(data, num_particles):
 
    return data, charge_max, charge_min
 
-def automate_simulation(path, radius, azimuth1, elevation1, azimuth2, elevation2, distance, first_sphere_file_name, second_sphere_file_name, temperature, nstep):
-   # create a folder within the "simulations/fe2o3 simulations" folder to hold the contents of a specific simulation
-   simulation_directory = f"Temperature{temperature}_nstep{nstep}_d{distance}_r{radius}_azimuth1{to_fraction(azimuth1)}pi_elevation1{to_fraction(elevation1)}pi_azimuth2{to_fraction(azimuth2)}pi_elevation2{to_fraction(elevation2)}pi"
-   parent_directory = "/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/simulations/fe2o3 simulations"
+def FeOautomate_simulation(path, radius, azimuth1, elevation1, azimuth2, elevation2, distance, first_sphere_file_name, second_sphere_file_name, temperature, nstep):
+   # create a folder within the "simulations/feo simulations" folder to hold the contents of a specific simulation
+   simulation_directory = f"Temperature{temperature}_nstep{nstep}_d{distance}_r{radius}_azimuth1{FeOto_fraction(azimuth1)}pi_elevation1{FeOto_fraction(elevation1)}pi_azimuth2{FeOto_fraction(azimuth2)}pi_elevation2{FeOto_fraction(elevation2)}pi"
+   parent_directory = "/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/simulations/feo simulations"
    simulation_directory_path = os.path.join(parent_directory, simulation_directory)
    os.makedirs(simulation_directory_path, exist_ok=True)
 
@@ -341,14 +341,14 @@ def automate_simulation(path, radius, azimuth1, elevation1, azimuth2, elevation2
    parameters_file.write(f'variable        temp equal {temperature}\nvariable        mdstep equal {nstep}')
    parameters_file.close()
 
-   set_up_two_nanoparticles(path=path, radius=radius, azimuth1=azimuth1, elevation1=elevation1, azimuth2=azimuth2,
+   FeOset_up_two_nanoparticles(path=path, radius=radius, azimuth1=azimuth1, elevation1=elevation1, azimuth2=azimuth2,
                             elevation2=elevation2, distance=distance, first_sphere_file_name=first_sphere_file_name,
                             second_sphere_file_name=second_sphere_file_name,
                             specific_simulation_directory_path=simulation_directory_path)
    
    return simulation_directory_path
 
-def to_fraction(radian_angle_multiple_of_pi):
+def FeOto_fraction(radian_angle_multiple_of_pi):
    decimal = radian_angle_multiple_of_pi/math.pi
    fraction = Fraction(decimal).limit_denominator()
    str_fraction = str(fraction)
