@@ -60,10 +60,10 @@ from functionsFeO import *
 # plt.show()
 
 
-FeOset_up_two_nanoparticles(path="/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/standard cif files/FeO.cif",
-                                         radius=25, distance=5, azimuth1 = 0, elevation1=0, azimuth2=0,
-                                         elevation2=0, first_sphere_file_name="first_sphere.lmp",
-                                         second_sphere_file_name="second_sphere.lmp", specific_simulation_directory_path="test folder")
+# FeOset_up_two_nanoparticles(path="/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/standard cif files/FeO.cif",
+#                                          radius=25, distance=5, azimuth1 = 0, elevation1=0, azimuth2=0,
+#                                          elevation2=0, first_sphere_file_name="first_sphere.lmp",
+#                                          second_sphere_file_name="second_sphere.lmp", specific_simulation_directory_path="test folder")
 
 # simulation_directory_path = automate_simulation(path="/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/standard cif files/Fe2O3.cif",
 #                             radius=25, distance=5, azimuth1 = 0, elevation1=0, azimuth2=0,
@@ -71,17 +71,17 @@ FeOset_up_two_nanoparticles(path="/Users/eytangf/Desktop/Internship/Nanoparticle
 #                             second_sphere_file_name="second_sphere.lmp", temperature=1300, nstep=200000)
 
 # simulation_num = 0
-# for elevation1,elevation2 in [(0,0), (0,math.pi/2), (math.pi/2,math.pi/2)]:
+# for azimuth1,elevation1,azimuth2,elevation2 in [(0,0,0,0), (0,0,math.pi/4,math.pi/4), (math.pi/4,math.pi/4, math.pi/4,math.pi/4)]:
 #     for temp in range(300,1400,100):
 #         for d in range (1,11):
 #             simulation_num += 1
 #             print(f"simulation num: {simulation_num}")
 #             print(f"temp: {temp}")
 #             print(f"d: {d}")
-#             simulation_directory_path = automate_simulation(path="/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/standard cif files/Alpha Fe2O3.cif",
-#                                                             radius=25, distance=d, azimuth1 = 0, elevation1=elevation1, azimuth2=0,
-#                                                             elevation2=elevation2, first_sphere_file_name="first_sphere.lmp",
-#                                                             second_sphere_file_name="second_sphere.lmp", temperature=temp, nstep=200000)
+#             simulation_directory_path = FeOautomate_simulation(path="/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/standard cif files/FeO.cif",
+#                                                                radius=25, distance=d, azimuth1 = azimuth1, elevation1=elevation1, azimuth2=azimuth2,
+#                                                                elevation2=elevation2, first_sphere_file_name="first_sphere.lmp",
+#                                                                second_sphere_file_name="second_sphere.lmp", temperature=temp, nstep=200000)
 
 
 # sphere = FeOunit_cell_to_sphere("/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/standard cif files/FeO.cif", radius=25, distance=0)

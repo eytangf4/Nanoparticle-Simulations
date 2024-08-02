@@ -13,8 +13,8 @@ def to_fraction(radian_angle_multiple_of_pi):
 
 def load_simulation_data(temp, d, elevation1, elevation2):
     # load neck area and dist ends data
-    loaded_neck_area_data = np.load(f"simulation_analysis/Temperature{temp}_distance{d}_azimuth1_0pi_elevation1_{to_fraction(elevation1)}pi_azimuth2_0pi_elevation2_{to_fraction(elevation2)}pi/neck_area_v_time.npz")
-    loaded_dist_ends_data = np.load(f"simulation_analysis/Temperature{temp}_distance{d}_azimuth1_0pi_elevation1_{to_fraction(elevation1)}pi_azimuth2_0pi_elevation2_{to_fraction(elevation2)}pi/dist_ends_v_time.npz")
+    loaded_neck_area_data = np.load(f"simulation_analysis/fe2o3/Temperature{temp}_distance{d}_azimuth1_0pi_elevation1_{to_fraction(elevation1)}pi_azimuth2_0pi_elevation2_{to_fraction(elevation2)}pi/neck_area_v_time.npz")
+    loaded_dist_ends_data = np.load(f"simulation_analysis/fe2o3/Temperature{temp}_distance{d}_azimuth1_0pi_elevation1_{to_fraction(elevation1)}pi_azimuth2_0pi_elevation2_{to_fraction(elevation2)}pi/dist_ends_v_time.npz")
 
     # get time step, neck area, and dist ends data
     loaded_time_step_arr = loaded_neck_area_data['arr_1']
@@ -22,6 +22,18 @@ def load_simulation_data(temp, d, elevation1, elevation2):
     loaded_dist_ends_arr = loaded_dist_ends_data['arr_2']
 
     return loaded_time_step_arr, loaded_neck_area_arr, loaded_dist_ends_arr
+
+def load_simulation_data_x_and_y_dist_ends(temp, d, elevation1, elevation2):
+    # load x and y dist ends data
+    loaded_x_dist_ends_data = np.load(f"simulation_analysis/fe2o3/Temperature{temp}_distance{d}_azimuth1_0pi_elevation1_{to_fraction(elevation1)}pi_azimuth2_0pi_elevation2_{to_fraction(elevation2)}pi/dist_ends_v_time.npz")
+    loaded_y_dist_ends_data = np.load(f"simulation_analysis/fe2o3/Temperature{temp}_distance{d}_azimuth1_0pi_elevation1_{to_fraction(elevation1)}pi_azimuth2_0pi_elevation2_{to_fraction(elevation2)}pi/ydist_ends_v_time.npz")
+
+    # get time step, x and y dist ends data
+    loaded_time_step_arr = loaded_x_dist_ends_data['arr_1']
+    loaded_x_dist_ends_arr = loaded_x_dist_ends_data['arr_2']
+    loaded_y_dist_ends_arr = loaded_y_dist_ends_data['arr_2']
+
+    return loaded_time_step_arr, loaded_x_dist_ends_arr, loaded_y_dist_ends_arr
 
 def plot_simulation_data(ax, temp, d, elevation1, elevation2, label):
     # get arrs to plot
@@ -168,6 +180,24 @@ def grab_simulation_data_range(temp, d, elevation1, elevation2):
 
     # return the arr holders
     return time_step_arr_holder, neck_area_arr_holder, dist_ends_arr_holder
+
+def grab_simulation_data_range_x_and_y_dist_ends(d, elevation1, elevation2):
+    time_step_arr_holder = []
+    x_dist_ends_arr_holder = []
+    y_dist_ends_arr_holder = []
+
+    for i in range(300,1400,100):
+
+        # get arrs to plot
+        time_step_arr, x_dist_ends_arr, y_dist_ends_arr = load_simulation_data_x_and_y_dist_ends(temp=i, d=d, elevation1=elevation1, elevation2=elevation2)
+
+        # add the arrs to the arr holders
+        time_step_arr_holder.append(time_step_arr)
+        x_dist_ends_arr_holder.append(x_dist_ends_arr)
+        y_dist_ends_arr_holder.append(y_dist_ends_arr)
+
+    # return the arr holders
+    return time_step_arr_holder, x_dist_ends_arr_holder, y_dist_ends_arr_holder
 
 def visualize_data():
     # initalize figure and subplots
@@ -354,6 +384,69 @@ def plot_simulation_data_equilibrated(ax, neck_area_arr_holder, dist_ends_arr_ho
     # plot data
     ax[0].plot(temp_arr, average_equilibrated_neck_area_points, linestyle='dashed', marker='o')
     ax[1].plot(temp_arr, average_equilibrated_dist_ends_points, linestyle='dashed', marker='o')
+
+def plot_simulation_data_equilibrated_x_and_y_dist_ends(ax, x_dist_ends_arr_holder, y_dist_ends_arr_holder):
+
+    temp_arr = [300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300]
+    average_equilibrated_x_dist_ends_points = []
+    average_equilibrated_y_dist_ends_points = []
+
+    # # set subplot axes limits
+    # ax[0].set_ylim([0, 600])
+    # ax[1].set_ylim([95, 115])
+
+    # set x ticks, 1 tick for each temperature
+    ax[0].set_xticks(temp_arr)
+    ax[1].set_xticks(temp_arr)
+
+    for i in range(0, 11):
+        # get the neck area and dist ends data from time step 150,000 to 200,000 (equilibrated data)
+        equilibrated_x_dist_ends_arr = x_dist_ends_arr_holder[i][150:202]
+        equilibrated_y_dist_ends_arr = y_dist_ends_arr_holder[i][150:202]
+
+        # get the averages
+        average_x_dist_ends_at_temp = np.average(equilibrated_x_dist_ends_arr)
+        average_y_dist_ends_at_temp = np.average(equilibrated_y_dist_ends_arr)
+
+        # add them to the arrs to plot
+        average_equilibrated_x_dist_ends_points.append(average_x_dist_ends_at_temp)
+        average_equilibrated_y_dist_ends_points.append(average_y_dist_ends_at_temp)
+
+    # plot data
+    ax[0].plot(temp_arr, average_equilibrated_x_dist_ends_points, linestyle='dashed', marker='o')
+    ax[1].plot(temp_arr, average_equilibrated_y_dist_ends_points, linestyle='dashed', marker='o')
+
+def plot_simulation_data_equilibrated_x_and_y_dist_ends_percent_delta_d(ax, x_dist_ends_arr_holder, y_dist_ends_arr_holder, elevation1, elevation2):
+
+    temp_arr = [300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300]
+    percent_shrinkage_points = []
+
+    # # set subplot axes limits
+    # ax[0].set_ylim([0, 600])
+    # ax[1].set_ylim([95, 115])
+
+    # set x ticks, 1 tick for each temperature
+    ax.set_xticks(temp_arr)
+
+    # each i is a temp
+    for i in range(0, 11):
+        # get the neck area and dist ends data from time step 150,000 to 200,000 (equilibrated data)
+        equilibrated_x_dist_ends_arr = x_dist_ends_arr_holder[i][150:202]
+        equilibrated_y_dist_ends_arr = y_dist_ends_arr_holder[i][150:202]
+
+        # get the averages
+        average_x_dist_ends_at_temp = np.average(equilibrated_x_dist_ends_arr)
+        average_y_dist_ends_at_temp = np.average(equilibrated_y_dist_ends_arr)
+
+        # get the percent shrinkage
+        # percent shrinkage = (Distx-Disty*2)/Disty
+        percent_shrinkage_at_temp = ((average_x_dist_ends_at_temp - (average_y_dist_ends_at_temp * 2)) / average_y_dist_ends_at_temp) * 100
+
+        # add them to the arrs to plot
+        percent_shrinkage_points.append(percent_shrinkage_at_temp)
+
+    # plot data
+    ax.plot(temp_arr, percent_shrinkage_points, linestyle='dashed', marker='o', label=f"Elevation1: {to_fraction(elevation1)} Elevation2: {to_fraction(elevation2)}")
 
 def plot_simulation_data_from_arrs_convolved(ax, time_step_arr, neck_area_arr, dist_ends_arr, label):
     # convolve neck area and dist ends
@@ -596,6 +689,62 @@ def visualize_equilibriated_arrs_v_temp(d, elevation1, elevation2):
 
     plt.show()
 
-visualize_data_by_spacebar_b_key(temp=None, d=5, elevation1=0, elevation2=0)
-visualize_data_by_spacebar_b_key_convolved(temp=None, d=5, elevation1=0, elevation2=0)
-visualize_equilibriated_arrs_v_temp(d=5, elevation1=0, elevation2=0)
+def visualize_equilibriated_x_and_y_dist_ends_v_temp(d, elevation1, elevation2):
+    # initalize figure and subplots
+    fig, ax = plt.subplots(nrows=1, ncols=2)
+
+    fig.canvas.manager.full_screen_toggle() # keep figure in full screen
+
+    fig.suptitle(f"Average Equilibrated Distances Between Nanoparticle Ends (X and Y) v Temperature for D={d}A, Elevation1={to_fraction(elevation1)}, Elevation2={to_fraction(elevation2)} for Temps 300-1300K")
+
+    # set subplots titles
+    ax[0].set_title('Equilibrated Distance Between X-Axis Nanoparticle Ends v Temperature')
+    ax[1].set_title('Equilibrated Distance Between Y-Axis Nanoparticle Ends v Temperature')
+
+    # set subplots axes
+    ax[0].set_xlabel('Temperature (K)')
+    ax[0].set_ylabel('Average Distance Between Nanoparticle Ends On X-Axis (Angstrom)')
+
+    ax[1].set_xlabel('Temperature (K)')
+    ax[1].set_ylabel('Average Distance Between Nanoparticle Ends On Y-Axis (Angstrom)')
+
+    # # set subplot axes limits
+    # ax[0].set_ylim([0, 600])
+    # ax[1].set_ylim([95, 115])
+
+    time_step_arr_holder, x_dist_ends_arr_holder, y_dist_ends_arr_holder = grab_simulation_data_range_x_and_y_dist_ends(d=d, elevation1=elevation1, elevation2=elevation2)
+
+    plot_simulation_data_equilibrated_x_and_y_dist_ends(ax=ax, x_dist_ends_arr_holder=x_dist_ends_arr_holder, y_dist_ends_arr_holder=y_dist_ends_arr_holder)
+
+    plt.show()
+
+def visualize_equilibriated_x_and_y_dist_ends_v_temp_percent_delta_d(d):
+    # initalize figure and subplots
+    fig, ax = plt.subplots(nrows=1, ncols=1)
+
+    fig.canvas.manager.full_screen_toggle() # keep figure in full screen
+
+    ax.set_title(f"Percent Change in Distance v Temperature for D={d}A for Temps 300-1300K, All 3 Orientations")
+
+    # set subplots axes
+    ax.set_xlabel('Temperature (K)')
+    ax.set_ylabel('Change in Distance (%)')
+
+    # # set subplot axes limits
+    # ax[0].set_ylim([0, 600])
+
+    # for each of the 3 orientations, plot the percent change in distance v temperature curve
+    for elevation1,elevation2 in [(0,0), (0, math.pi/2), (math.pi/2, math.pi/2)]:
+        # get the simulation analysis data
+        time_step_arr_holder, x_dist_ends_arr_holder, y_dist_ends_arr_holder = grab_simulation_data_range_x_and_y_dist_ends(d=d, elevation1=elevation1, elevation2=elevation2)
+
+        # plot the simulation analysis data
+        plot_simulation_data_equilibrated_x_and_y_dist_ends_percent_delta_d(ax=ax, x_dist_ends_arr_holder=x_dist_ends_arr_holder, y_dist_ends_arr_holder=y_dist_ends_arr_holder, elevation1=elevation1, elevation2=elevation2)
+        plt.legend()
+
+    plt.show()
+
+visualize_equilibriated_x_and_y_dist_ends_v_temp_percent_delta_d(d=5)
+# visualize_data_by_spacebar_b_key(temp=None, d=5, elevation1=0, elevation2=0)
+# visualize_data_by_spacebar_b_key_convolved(temp=None, d=5, elevation1=0, elevation2=0)
+# visualize_equilibriated_arrs_v_temp(d=5, elevation1=0, elevation2=0)
