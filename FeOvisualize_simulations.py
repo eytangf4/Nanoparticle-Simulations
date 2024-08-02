@@ -11,6 +11,8 @@ def to_fraction(radian_angle_multiple_of_pi):
    without_slash = str_fraction.replace("/", "over")
    return without_slash
 
+#############################################
+# Contains path which needs to be changed
 def load_simulation_data(temp, d, elevation1, elevation2):
     # load neck area and dist ends data
     loaded_neck_area_data = np.load(f"simulation_analysis/feo/Temperature{temp}_distance{d}_azimuth1_0pi_elevation1_{to_fraction(elevation1)}pi_azimuth2_0pi_elevation2_{to_fraction(elevation2)}pi/neck_area_v_time.npz")
@@ -23,6 +25,9 @@ def load_simulation_data(temp, d, elevation1, elevation2):
 
     return loaded_time_step_arr, loaded_neck_area_arr, loaded_dist_ends_arr
 
+
+#############################################
+# Contains path which needs to be changed
 def load_simulation_data_x_and_y_dist_ends(temp, d, elevation1, elevation2):
     # load x and y dist ends data
     loaded_x_dist_ends_data = np.load(f"simulation_analysis/feo/Temperature{temp}_distance{d}_azimuth1_0pi_elevation1_{to_fraction(elevation1)}pi_azimuth2_0pi_elevation2_{to_fraction(elevation2)}pi/dist_ends_v_time.npz")

@@ -124,6 +124,9 @@ def get_temperature(path):
 #    plt.legend()
 #    plt.show()
 
+
+#############################################
+# Contains path which needs to be changed
 def save_data_to_file(temperature, d, elevation1, elevation2, analysis_type, arr_1, arr_2):
     # create folder with simulation info (eg. temp )
     simulation_folder = f"simulation_analysis/fe2o3/Temperature{temperature}_distance{d}_azimuth1_0pi_elevation1_{to_fraction(elevation1)}pi_azimuth2_0pi_elevation2_{to_fraction(elevation2)}pi"
@@ -140,12 +143,18 @@ def to_fraction(radian_angle_multiple_of_pi):
 
 # loop through all the dumps
 
+
+#############################################
+# Contains path which needs to be changed
 def save_analyses():
     for elevation1,elevation2 in [(0,0), (0,math.pi/2), (math.pi/2,math.pi/2)]:
         for temp in range (300,1400,100):
             for d in range (1,11):
                 simulation_folder = f"simulation_analysis/fe2o3/Temperature{temp}_distance{d}_azimuth1_0pi_elevation1_{to_fraction(elevation1)}pi_azimuth2_0pi_elevation2_{to_fraction(elevation2)}pi"
 
+
+                #############################################
+                # Contains path which needs to be changed
                 # if sim analysis is complete
                 simulation_path_string = f'sftp://eytangf@dtn.sherlock.stanford.edu/scratch/groups/leoradm/yfwang09/NP_sintering_240724/Temperature{temp}_nstep200000_d{d}_r25_azimuth10pi_elevation1{to_fraction(elevation1)}pi_azimuth20pi_elevation2{to_fraction(elevation2)}pi'
                 neckarea_npzfile = os.path.join(simulation_folder, 'neck_area_v_time.npz')

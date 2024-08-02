@@ -317,9 +317,14 @@ def FeOcheck_charge_density(data, num_particles):
 
    return data, charge_max, charge_min
 
+
+#############################################
+# Contains path which needs to be changed
 def FeOautomate_simulation(path, radius, azimuth1, elevation1, azimuth2, elevation2, distance, first_sphere_file_name, second_sphere_file_name, temperature, nstep):
    # create a folder within the "simulations/feo simulations" folder to hold the contents of a specific simulation
    simulation_directory = f"Temperature{temperature}_nstep{nstep}_d{distance}_r{radius}_azimuth1{FeOto_fraction(azimuth1)}pi_elevation1{FeOto_fraction(elevation1)}pi_azimuth2{FeOto_fraction(azimuth2)}pi_elevation2{FeOto_fraction(elevation2)}pi"
+   #############################################
+   # Contains path which needs to be changed
    parent_directory = "/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/simulations/feo simulations"
    simulation_directory_path = os.path.join(parent_directory, simulation_directory)
    os.makedirs(simulation_directory_path, exist_ok=True)
@@ -329,6 +334,8 @@ def FeOautomate_simulation(path, radius, azimuth1, elevation1, azimuth2, elevati
    dump_directory_path = os.path.join(simulation_directory_path, dump_directory)
    os.makedirs(dump_directory_path, exist_ok=True)
 
+   #############################################
+   # Contains path which needs to be changed
    # copy the in.test file into the specific simulation folder
    shutil.copy(src="/Users/eytangf/Desktop/Internship/Nanoparticle Simulations/in.test", dst=f"{simulation_directory_path}/in.test")
 
